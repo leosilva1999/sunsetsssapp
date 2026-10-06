@@ -1,32 +1,25 @@
-import { Link, Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from "react-native";
+import { Link, Stack } from "expo-router";
 
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { Screen } from "@/src/components/ui/Screen";
+import { useTheme } from "@/src/theme/useTheme";
 
 export default function NotFoundScreen() {
+  const { colors, fonts } = useTheme();
   return (
-    <>
-      <Stack.Screen options={{ title: 'Oops!' }} />
-      <ThemedView style={styles.container}>
-        <ThemedText type="title">This screen doesn't exist.</ThemedText>
-        <Link href="/" style={styles.link}>
-          <ThemedText type="link">Go to home screen!</ThemedText>
-        </Link>
-      </ThemedView>
-    </>
+    <Screen>
+      <Stack.Screen options={{ headerShown: true, title: "Página não encontrada" }} />
+      <Text style={[styles.title, { color: colors.textPrimary, fontFamily: fonts.display }]}>
+        Essa tela não existe.
+      </Text>
+      <Link href="/" style={[styles.link, { color: colors.accent, fontFamily: fonts.bodyBold }]}>
+        Voltar pro início
+      </Link>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
-  },
+  title: { fontSize: 18, textAlign: "center", marginTop: 40 },
+  link: { textAlign: "center", marginTop: 16, fontSize: 15 },
 });
