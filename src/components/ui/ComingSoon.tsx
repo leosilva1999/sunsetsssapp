@@ -18,10 +18,12 @@ interface ComingSoonProps {
 /** Placeholder padrão pras telas ainda não implementadas nesta entrega — ver seção da spec
  *  referente a cada rota. Substituir pela implementação real tela a tela. */
 export function ComingSoon({ title, description, icon = "construct-outline", headerTitle }: ComingSoonProps) {
-  const { colors, fonts } = useTheme();
+  const { colors, fonts, headerOptions } = useTheme();
   return (
     <Screen>
-      {headerTitle ? <Stack.Screen options={{ headerShown: true, title: headerTitle }} /> : null}
+      {headerTitle ? (
+        <Stack.Screen options={{ headerShown: true, title: headerTitle, ...headerOptions }} />
+      ) : null}
       <View style={styles.center}>
         <Ionicons name={icon} size={40} color={colors.textSecondary} />
         <Text style={[styles.title, { color: colors.textPrimary, fontFamily: fonts.display }]}>{title}</Text>

@@ -14,7 +14,7 @@ interface ThemeState {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set) => ({
-      preference: "dark", // tema escuro é o padrão do produto — seção 2
+      preference: "light", // tema claro é o padrão do produto (ajustado — era dark)
       setPreference: (preference) => set({ preference }),
     }),
     {

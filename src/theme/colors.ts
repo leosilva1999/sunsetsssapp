@@ -1,5 +1,6 @@
 // Paleta extraída de `web_app_docs/mobile-app-spec.md` (seção 2) e das screenshots de
-// referência. Tema escuro é o padrão do produto.
+// referência. Tema claro é o padrão do app (ajustado — a spec original previa dark como
+// padrão); o usuário pode alternar, ver `themeStore.ts`.
 
 // Fixo nos dois temas — não varia com light/dark (seção 2).
 export const sunIconColor = "#f86f02";

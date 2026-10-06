@@ -13,12 +13,12 @@ interface LegalDocumentScreenProps {
 }
 
 export function LegalDocumentScreen({ title, queryKey, fetchDocument }: LegalDocumentScreenProps) {
-  const { colors, fonts } = useTheme();
+  const { colors, fonts, headerOptions } = useTheme();
   const { data, isLoading, isError } = useQuery({ queryKey, queryFn: fetchDocument });
 
   return (
     <Screen>
-      <Stack.Screen options={{ headerShown: true, title }} />
+      <Stack.Screen options={{ headerShown: true, title, ...headerOptions }} />
       <ScrollView contentContainerStyle={styles.content}>
         {isLoading && <ActivityIndicator color={colors.textPrimary} />}
         {isError && (

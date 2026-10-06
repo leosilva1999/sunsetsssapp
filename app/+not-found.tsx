@@ -5,10 +5,10 @@ import { Screen } from "@/src/components/ui/Screen";
 import { useTheme } from "@/src/theme/useTheme";
 
 export default function NotFoundScreen() {
-  const { colors, fonts } = useTheme();
+  const { colors, fonts, headerOptions } = useTheme();
   return (
     <Screen>
-      <Stack.Screen options={{ headerShown: true, title: "Página não encontrada" }} />
+      <Stack.Screen options={{ headerShown: true, title: "Página não encontrada", ...headerOptions }} />
       <Text style={[styles.title, { color: colors.textPrimary, fontFamily: fonts.display }]}>
         Essa tela não existe.
       </Text>

@@ -8,18 +8,33 @@ export interface Theme {
   colors: ThemeColors;
   fonts: typeof fonts;
   sunIconColor: string;
+  /** Opções pro header nativo (`<Stack.Screen options={{ ...headerOptions, title }} />`) —
+   *  por padrão o header do React Navigation não segue o tema do app. */
+  headerOptions: {
+    headerStyle: { backgroundColor: string };
+    headerTintColor: string;
+    headerTitleStyle: { fontFamily: string };
+    headerShadowVisible: boolean;
+  };
 }
 
 export function useTheme(): Theme {
   const preference = useThemeStore((s) => s.preference);
   const systemScheme = useColorScheme();
 
-  const scheme = preference === "system" ? (systemScheme ?? "dark") : preference;
+  const scheme = preference === "system" ? (systemScheme ?? "light") : preference;
+  const colors = scheme === "dark" ? darkColors : lightColors;
 
   return {
     scheme,
-    colors: scheme === "dark" ? darkColors : lightColors,
+    colors,
     fonts,
     sunIconColor,
+    headerOptions: {
+      headerStyle: { backgroundColor: colors.surface },
+      headerTintColor: colors.textPrimary,
+      headerTitleStyle: { fontFamily: fonts.bodyBold },
+      headerShadowVisible: false,
+    },
   };
 }
