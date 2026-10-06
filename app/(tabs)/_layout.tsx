@@ -1,15 +1,14 @@
-import { Redirect, Tabs } from "expo-router";
+import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
-import { useAuthStore } from "@/src/stores/authStore";
 import { useTheme } from "@/src/theme/useTheme";
 import { HapticTab } from "@/src/components/ui/HapticTab";
 
+// Navegação por tabs é pública (seção 5 da spec — Início/Explorar/Fotos/Ranking não exigem
+// login). Telas/ações que exigem sessão (perfil próprio, postar foto) checam e redirecionam
+// individualmente — ver app/(tabs)/profile.tsx e o CTA de postar foto na Home.
 export default function TabsLayout() {
-  const status = useAuthStore((s) => s.status);
   const { colors, sunIconColor, fonts } = useTheme();
-
-  if (status === "signedOut") return <Redirect href="/(auth)/login" />;
 
   return (
     <Tabs
