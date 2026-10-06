@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Link, router } from "expo-router";
 
 import { GradientBackground } from "@/src/components/ui/GradientBackground";
@@ -87,6 +87,12 @@ export default function LoginScreen() {
             </View>
 
             <Button label="Continuar com Google" variant="secondary" onPress={handleGoogle} />
+
+            <Pressable onPress={() => router.replace("/(tabs)")} hitSlop={8}>
+              <Text style={[styles.guestLink, { color: colors.textOnGradient, fontFamily: fonts.bodyMedium }]}>
+                ou entrar como visitante
+              </Text>
+            </Pressable>
           </View>
 
           <Link
@@ -112,5 +118,6 @@ const styles = StyleSheet.create({
   divider: { flexDirection: "row", alignItems: "center", gap: 12, marginVertical: 4 },
   dividerLine: { flex: 1, height: StyleSheet.hairlineWidth },
   dividerLabel: { fontSize: 13 },
+  guestLink: { textAlign: "center", fontSize: 13, opacity: 0.85, marginTop: 4 },
   footerLink: { textAlign: "center", fontSize: 14 },
 });
