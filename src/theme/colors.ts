@@ -9,6 +9,7 @@ export const gradient = {
   twilightDeep: "#1e1038",
   twilightMid: "#2d1b4e",
   sunsetOrange: "#ff8c5a",
+  sunsetOrangeDeep: "#e8622f",
   sunsetGold: "#ffcf6b",
   eveningPink: "#e85d8a",
 };
@@ -52,5 +53,7 @@ export const lightColors: ThemeColors = {
   accent: gradient.eveningPink,
   danger: "#d64545",
   success: "#2f9e6e",
-  gradient: ["#fff9f2", gradient.sunsetGold, gradient.sunsetOrange],
+  // Dourado já no topo (antes começava em quase-branco) — menos branco, mais laranja, em
+  // tom mais escuro na base. Ajustado a pedido do usuário.
+  gradient: [gradient.sunsetGold, gradient.sunsetOrange, gradient.sunsetOrangeDeep],
 };
