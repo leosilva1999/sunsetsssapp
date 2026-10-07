@@ -13,6 +13,7 @@ import { useTheme } from "@/src/theme/useTheme";
 import { useThemeStore } from "@/src/theme/themeStore";
 import { useAuthStore } from "@/src/stores/authStore";
 import { usePhotoCount, useRecentPhotos, useWeeklyRanking } from "@/src/hooks/useHomeData";
+import { useUnreadCount } from "@/src/hooks/useNotifications";
 import type { PhotoSort } from "@/src/types/api";
 
 type PhotosTab = PhotoSort | "nearby";
@@ -27,6 +28,7 @@ export default function HomeScreen() {
   const photoCount = usePhotoCount();
   const weeklyRanking = useWeeklyRanking();
   const recentPhotos = useRecentPhotos(photosTab === "nearby" ? "recent" : photosTab);
+  const unreadCount = useUnreadCount();
 
   const handleSearch = () => {
     router.push({ pathname: "/(tabs)/explore", params: search.trim() ? { q: search.trim() } : {} });
@@ -49,6 +51,11 @@ export default function HomeScreen() {
               {isSignedIn && (
                 <Pressable hitSlop={8} onPress={() => router.push("/notifications")} style={[styles.iconButton, { borderColor: colors.border }]}>
                   <Ionicons name="notifications-outline" size={18} color={colors.textOnGradient} />
+                  {!!unreadCount.data?.count && (
+                    <View style={[styles.unreadBadge, { backgroundColor: colors.accent, borderColor: colors.background }]}>
+                      <Text style={styles.unreadBadgeText}>{unreadCount.data.count > 9 ? "9+" : unreadCount.data.count}</Text>
+                    </View>
+                  )}
                 </Pressable>
               )}
             </View>
@@ -185,6 +192,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  unreadBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 3,
+  },
+  unreadBadgeText: { color: "#fff", fontSize: 10, fontWeight: "700" },
   counter: { fontSize: 12, letterSpacing: 1, marginTop: 28 },
   title: { fontSize: 32, lineHeight: 38, marginTop: 8 },
   subtitle: { fontSize: 14, lineHeight: 20, marginTop: 12, opacity: 0.9 },
