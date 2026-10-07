@@ -61,7 +61,8 @@ app/                  # rotas (Expo Router) — cada arquivo é uma tela
   photos/[id], photos/new
   profile/[id], profile/edit
   notifications/
-  moderation/           gated por role (Moderator/Admin) via RoleGate
+  moderation/           fila de denúncias, histórico, termos/usuários (Admin) — gated por
+                       role via RoleGate
   legal/                Termos de Uso / Política de Privacidade
 
 src/
@@ -79,12 +80,21 @@ src/
 
 ## Estado desta entrega
 
-Fundação completa (navegação, tema, cliente de API, sessão) + telas de autenticação
-(login/cadastro/esqueci-redefinir senha) e Início implementadas de ponta a ponta. As demais
-telas existem como rotas navegáveis com um placeholder "em construção", prontas para receber a
-implementação real — ver cada arquivo em `app/` para a seção correspondente da spec.
+Todas as telas da seção 5 da spec estão implementadas de ponta a ponta contra a API real:
+autenticação completa, Início, Explorar, Ranking, Fotos (feed + detalhe + postar), Local
+(detalhe + avaliar), Perfil (próprio + de terceiros + seguidores/seguindo + editar),
+Notificações (polling) e Moderação (fila de denúncias, histórico, termos/privacidade e
+papéis de usuário, Admin-only onde a spec pede).
 
-Tipos (`src/types/`) e módulos de API (`src/api/`) já foram conferidos contra
+**Deixado de fora de propósito**, não por falta de tempo — ver comentários no código:
+- **"Baixar meus dados" e "Excluir minha conta"** (LGPD, seção 5.9) — ações de conta sensíveis/
+  irreversíveis, melhor numa entrega própria dedicada a elas.
+- **Login com Google** — ver pendência abaixo.
+- **Mapa embutido** no Detalhe do local — a proposta da API (`proposal-location-map-embed.md`)
+  é pra web (iframe + key do Google Maps); sem essa key, usamos "Abrir no mapa" (app nativo via
+  coordenadas). Trocar por WebView + embed assim que houver a key.
+
+Tipos (`src/types/`) e módulos de API (`src/api/`) foram conferidos contra
 `docs/API.md` do repositório `sunsetapi` (não só o resumo em `web_app_docs/mobile-app-spec.md`)
 — payloads, nomes de campo e regras de validação (ex.: senha ≥8 caracteres, `sort=recent|top`,
 `PublicUserResponse` sem `followersCount` no objeto de sessão) batem com o que a API realmente
@@ -105,6 +115,9 @@ código):
   ícone do app, splash e cabeçalhos (`src/components/ui/BrandLogo.tsx`). São imagens 160×160/
   400×100 — ok pro estágio atual, mas vale pedir uma versão em maior resolução (1024×1024 pro
   ícone) antes de gerar os ícones finais de loja.
-- **Upload de imagens em dev**: a API usa LocalStack pra `POST /photos/upload-url` /
-  `POST /users/me/avatar-upload-url` localmente — precisa do `docker compose up` no repo da API
-  rodando pra essas chamadas funcionarem (ver `CLAUDE.md`/README do `sunsetapi`).
+- **Upload de imagens em dev**: postar foto e trocar avatar passam pela API usando LocalStack
+  localmente — precisa do `docker compose up` no repo da API rodando pra essas chamadas
+  funcionarem (ver `CLAUDE.md`/README do `sunsetapi`).
+- **Debugger do Metro é instável nesta versão**: abrir o DevTools/inspector (`j` no terminal,
+  ou o menu de debug no celular) já derrubou o servidor com um `Error: Runtime.evaluate` não
+  tratado. Evite abrir o inspector; se o Metro cair, só reiniciar (`npx expo start`).

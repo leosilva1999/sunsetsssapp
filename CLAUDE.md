@@ -102,3 +102,13 @@ the one list endpoint that is **not** paginated (plain array, `?limit=`).
   failures there (react-query will retry a few times, then surface the error) unless the
   backend's `Cors:AllowedOrigins` is updated. Native builds (simulator/device/Expo Go) aren't
   affected — CORS is a browser-only restriction.
+- **The Metro dev server's inspector/debugger is unstable on this CLI version** — opening it
+  (`j` in the terminal, or the debug menu on-device) has crashed the whole process with an
+  unhandled `Error: Runtime.evaluate` from `CdpClient.ts`. Not related to app code; just restart
+  (`npx expo start`) if it happens, and avoid opening the inspector otherwise.
+- **A phone testing over `exp://<lan-ip>:8081` needs `.env`'s `EXPO_PUBLIC_API_BASE_URL` to use
+  that same LAN IP** (not `localhost`) — and the backend's Kestrel needs to listen on
+  `0.0.0.0`, not just `localhost` (its `launchSettings.json` default). Both the phone's network
+  and the machine's Wi-Fi IP can change between sessions; re-check with `ipconfig`/
+  `Get-NetIPConfiguration` if the app suddenly can't reach the API, rather than assuming
+  something broke in code.
