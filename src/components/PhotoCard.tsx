@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "../theme/useTheme";
 import { photosApi } from "../api/photos";
 import { useAuthStore } from "../stores/authStore";
+import { togglePhotoLikeInCache } from "../lib/photoLikeCache";
 import type { Photo } from "../types/entities";
 
 interface PhotoCardProps {
@@ -25,7 +26,7 @@ export function PhotoCard({ photo, queryKey }: PhotoCardProps) {
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData(queryKey);
-      queryClient.setQueryData(queryKey, (data: any) => updatePhotoInCache(data, photo.id));
+      togglePhotoLikeInCache(queryClient, queryKey, photo.id);
       return { previous };
     },
     onError: (_err, _vars, context) => {
@@ -66,20 +67,6 @@ export function PhotoCard({ photo, queryKey }: PhotoCardProps) {
       </View>
     </Pressable>
   );
-}
-
-function updatePhotoInCache(data: unknown, photoId: string): unknown {
-  if (!data || typeof data !== "object") return data;
-  const page = data as { items?: Photo[] };
-  if (!Array.isArray(page.items)) return data;
-  return {
-    ...page,
-    items: page.items.map((p) =>
-      p.id === photoId
-        ? { ...p, likedByCurrentUser: !p.likedByCurrentUser, likesCount: p.likesCount + (p.likedByCurrentUser ? -1 : 1) }
-        : p
-    ),
-  };
 }
 
 const styles = StyleSheet.create({
