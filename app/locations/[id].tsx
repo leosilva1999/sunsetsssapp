@@ -17,6 +17,7 @@ import { Screen } from "@/src/components/ui/Screen";
 import { Button } from "@/src/components/ui/Button";
 import { TextField } from "@/src/components/ui/TextField";
 import { RatingStars } from "@/src/components/RatingStars";
+import { LocationMap } from "@/src/components/LocationMap";
 import { useTheme } from "@/src/theme/useTheme";
 import { useAuthStore } from "@/src/stores/authStore";
 import { getErrorMessage } from "@/src/lib/errorMessage";
@@ -136,21 +137,19 @@ export default function LocationDetailScreen() {
             </View>
           ) : null}
 
-          <Pressable
-            style={[styles.card, styles.mapRow, { backgroundColor: colors.surfaceAlt }]}
-            onPress={handleOpenMap}
-          >
-            <Ionicons name="map-outline" size={22} color={colors.textPrimary} />
-            <View style={styles.mapText}>
-              <Text style={[styles.mapLabel, { color: colors.textPrimary, fontFamily: fonts.bodyMedium }]}>
-                Abrir no mapa
+          <View style={styles.mapSection}>
+            <LocationMap
+              latitude={location.data.latitude}
+              longitude={location.data.longitude}
+              name={location.data.name}
+            />
+            <Pressable style={styles.mapLinkRow} onPress={handleOpenMap} hitSlop={6}>
+              <Ionicons name="navigate-outline" size={16} color={colors.accent} />
+              <Text style={[styles.mapLinkLabel, { color: colors.accent, fontFamily: fonts.bodyMedium }]}>
+                Abrir no app de Mapas
               </Text>
-              <Text style={[styles.mapCoords, { color: colors.textSecondary, fontFamily: fonts.mono }]}>
-                {location.data.latitude.toFixed(4)}, {location.data.longitude.toFixed(4)}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
-          </Pressable>
+            </Pressable>
+          </View>
 
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.textPrimary, fontFamily: fonts.display }]}>
@@ -270,10 +269,9 @@ const styles = StyleSheet.create({
   sunsetRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   sunsetTime: { fontSize: 15 },
   attribution: { fontSize: 11 },
-  mapRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  mapText: { flex: 1, gap: 2 },
-  mapLabel: { fontSize: 15 },
-  mapCoords: { fontSize: 12 },
+  mapSection: { gap: 10 },
+  mapLinkRow: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "center" },
+  mapLinkLabel: { fontSize: 13 },
   section: { gap: 12 },
   sectionTitle: { fontSize: 19 },
   photoRow: { gap: 10 },

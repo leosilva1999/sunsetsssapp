@@ -13,3 +13,10 @@ if (!rawBaseUrl && !__DEV__) {
 // Android).
 export const API_BASE_URL = rawBaseUrl ?? "http://localhost:5256";
 export const API_PREFIX = "/api/v1";
+
+// Mapa embutido no Detalhe do local (seção 5.4 / proposal-location-map-embed.md). Reaproveita a
+// key do Google Maps já usada pelo `sunsetweb` — se ela estiver restrita por HTTP referrer (pro
+// domínio do app web), pode não funcionar numa WebView; nesse caso, criar uma key própria pro
+// mobile (restrição por app Android/iOS, não por referrer) é o caminho certo. Opcional: sem
+// isso configurado, `LocationMap` simplesmente não renderiza, sem quebrar a tela.
+export const GOOGLE_MAPS_EMBED_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_EMBED_KEY ?? null;

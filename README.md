@@ -89,10 +89,14 @@ papéis de usuário, Admin-only onde a spec pede).
 **Deixado de fora de propósito**, não por falta de tempo — ver comentários no código:
 - **"Baixar meus dados" e "Excluir minha conta"** (LGPD, seção 5.9) — ações de conta sensíveis/
   irreversíveis, melhor numa entrega própria dedicada a elas.
-- **Login com Google** — ver pendência abaixo.
-- **Mapa embutido** no Detalhe do local — a proposta da API (`proposal-location-map-embed.md`)
-  é pra web (iframe + key do Google Maps); sem essa key, usamos "Abrir no mapa" (app nativo via
-  coordenadas). Trocar por WebView + embed assim que houver a key.
+- **Login com Google** — ver pendência abaixo (já investigado a fundo, não é só "faltou tempo").
+- ~~Mapa embutido~~ feito — `src/components/LocationMap.tsx` (WebView + Google Maps Embed API,
+  adaptando `proposal-location-map-embed.md` do web pra mobile). Reaproveita a key do `sunsetweb`
+  (`EXPO_PUBLIC_GOOGLE_MAPS_EMBED_KEY` no `.env`) — se ela estiver restrita por HTTP referrer pro
+  domínio web, o mapa pode não carregar na WebView; nesse caso crie uma key própria pro mobile
+  (restrição por app Android/iOS, não por referrer) no Google Cloud Console. Sem a env var
+  configurada, o componente simplesmente não renderiza nada, não quebra a tela — e o botão
+  "Abrir no app de Mapas" continua ali como alternativa sempre disponível.
 
 Tipos (`src/types/`) e módulos de API (`src/api/`) foram conferidos contra
 `docs/API.md` do repositório `sunsetapi` (não só o resumo em `web_app_docs/mobile-app-spec.md`)
@@ -103,9 +107,14 @@ devolve.
 **Pendências que dependem de decisão/infra fora deste repo** (não são bugs — ver comentários no
 código):
 
-- **Login com Google**: precisa do SDK nativo (`@react-native-google-signin/google-signin` ou
-  equivalente) configurado com os client IDs do projeto Google Cloud (iOS/Android) — hoje o
-  botão mostra um aviso "em breve".
+- **Login com Google**: já existe um projeto Google Cloud funcionando (`GoogleAuth:ClientId` no
+  `appsettings.Development.json` do `sunsetapi`, mesmo Client ID em `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
+  do `sunsetweb`) — não precisa criar nada do zero, só adicionar credenciais mobile a ele. O
+  bloqueio real: `auth.expo.io` (o proxy que permitia OAuth dentro do Expo Go) está
+  descontinuado, e o Google bloqueia OAuth via WebView genérica por política de segurança — não
+  tem caminho funcional sem sair do Expo Go. A forma certa é um dev client (via EAS Build, não
+  precisa de Android Studio/Xcode local) + `@react-native-google-signin/google-signin`. Decisão
+  consciente de adiar até fazer sentido investir nisso — hoje o botão mostra "em breve".
 - **CORS ao testar via `expo start --web`**: a API só libera `http://localhost:3000` e
   `http://localhost:5173` por padrão (`Cors:AllowedOrigins` em `appsettings.Development.json` do
   `sunsetapi`). O Metro web roda em `http://localhost:8081` — adicione essa origem lá se for
