@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usersApi } from "../api/users";
 import type { User } from "../types/entities";
 
@@ -7,6 +7,34 @@ export function useUserProfile(id: string | undefined) {
     queryKey: ["users", id],
     queryFn: () => usersApi.get(id!),
     enabled: !!id,
+  });
+}
+
+export function useUserPhotos(id: string | undefined) {
+  return useInfiniteQuery({
+    queryKey: ["users", id, "photos"],
+    queryFn: ({ pageParam }) => usersApi.getPhotos(id!, pageParam),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
+    enabled: !!id,
+  });
+}
+
+export function useFollowers(id: string) {
+  return useInfiniteQuery({
+    queryKey: ["users", id, "followers"],
+    queryFn: ({ pageParam }) => usersApi.getFollowers(id, pageParam),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
+  });
+}
+
+export function useFollowing(id: string) {
+  return useInfiniteQuery({
+    queryKey: ["users", id, "following"],
+    queryFn: ({ pageParam }) => usersApi.getFollowing(id, pageParam),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
   });
 }
 

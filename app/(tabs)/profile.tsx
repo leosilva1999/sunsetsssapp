@@ -1,4 +1,4 @@
-import { Alert, Image, StyleSheet, Text, View } from "react-native";
+import { Alert, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
@@ -68,14 +68,30 @@ export default function OwnProfileScreen() {
             <Text style={[styles.bio, { color: colors.textSecondary, fontFamily: fonts.body }]}>{authUser.bio}</Text>
           ) : null}
           {profile.data ? (
-            <Text style={[styles.counter, { color: colors.textSecondary, fontFamily: fonts.mono }]}>
-              {profile.data.followersCount} seguidores · {profile.data.followingCount} seguindo
-            </Text>
+            <View style={styles.countsRow}>
+              <Pressable onPress={() => router.push(`/profile/${authUser!.id}/followers`)}>
+                <Text style={[styles.counter, { color: colors.textSecondary, fontFamily: fonts.mono }]}>
+                  {profile.data.followersCount} seguidores
+                </Text>
+              </Pressable>
+              <Text style={[styles.counter, { color: colors.textSecondary, fontFamily: fonts.mono }]}>·</Text>
+              <Pressable onPress={() => router.push(`/profile/${authUser!.id}/following`)}>
+                <Text style={[styles.counter, { color: colors.textSecondary, fontFamily: fonts.mono }]}>
+                  {profile.data.followingCount} seguindo
+                </Text>
+              </Pressable>
+            </View>
           ) : null}
+          <Pressable onPress={() => router.push(`/profile/${authUser!.id}`)} hitSlop={6}>
+            <Text style={[styles.viewFullProfile, { color: colors.accent, fontFamily: fonts.bodyMedium }]}>
+              Ver perfil completo
+            </Text>
+          </Pressable>
         </View>
 
         <View style={styles.actions}>
           <Button label="Postar foto" onPress={() => router.push("/photos/new")} />
+          <Button label="Editar perfil" variant="secondary" onPress={() => router.push("/profile/edit")} />
           <Button label="Sair" variant="ghost" onPress={handleLogout} loading={logout.isPending} />
         </View>
       </View>
@@ -94,5 +110,7 @@ const styles = StyleSheet.create({
   avatarFallback: { width: 88, height: 88, borderRadius: 44, alignItems: "center", justifyContent: "center" },
   name: { fontSize: 22, marginTop: 8 },
   bio: { fontSize: 14, textAlign: "center" },
-  counter: { fontSize: 12, marginTop: 4 },
+  countsRow: { flexDirection: "row", gap: 6, marginTop: 4 },
+  counter: { fontSize: 12 },
+  viewFullProfile: { fontSize: 13, marginTop: 10 },
 });

@@ -33,6 +33,11 @@ export interface PhotoUploadUrlResponse {
   imageUrl: string;
 }
 
+export interface AvatarUploadUrlResponse {
+  uploadUrl: string;
+  avatarUrl: string;
+}
+
 // `GET /locations/{id}/sunset` — live, via sunrise-sunset.org (seção Locations).
 export interface SunsetInfo {
   date: string;

@@ -1,5 +1,6 @@
 import { apiFetch } from "./client";
-import type { CursorPage, User } from "../types/entities";
+import type { AuthUser, CursorPage, Photo, User } from "../types/entities";
+import type { AvatarUploadUrlResponse } from "../types/api";
 
 // Ver docs/API.md, seção Users. `GET /users/{id}` é público mas lê o bearer se presente pra
 // resolver `isFollowedByCurrentUser` — client.ts já anexa o token automaticamente quando existe.
@@ -18,4 +19,23 @@ export const usersApi = {
     const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
     return apiFetch<CursorPage<User>>(`/users/${id}/following${qs}`, { auth: false });
   },
+
+  // likedByCurrentUser sempre false aqui, independente do token (gotcha #3 — igual
+  // `locationsApi.getPhotos`).
+  getPhotos: (id: string, cursor?: string | null) => {
+    const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    return apiFetch<CursorPage<Photo>>(`/users/${id}/photos${qs}`, { auth: false });
+  },
+
+  // Partial update de verdade (JSON Merge Patch — seção Users): só os campos presentes no body
+  // são tocados. Omitir = mantém, `null` = limpa (só avatarUrl/bio — name não pode ser null),
+  // valor = substitui. O caller decide o que entra no objeto, não essa função.
+  updateMe: (payload: { name?: string; avatarUrl?: string | null; bio?: string | null }) =>
+    apiFetch<AuthUser>("/users/me", { method: "PATCH", body: payload }),
+
+  // Mesmo padrão de upload em 2 passos das fotos (seção 5.8) — devolve `avatarUrl`, não
+  // `imageUrl`. `avatarUrl` só é aceito por `updateMe` se vier exatamente desta resposta (tem
+  // que apontar pro nosso bucket).
+  requestAvatarUploadUrl: (contentType: "image/jpeg" | "image/png") =>
+    apiFetch<AvatarUploadUrlResponse>("/users/me/avatar-upload-url", { method: "POST", body: { contentType } }),
 };
