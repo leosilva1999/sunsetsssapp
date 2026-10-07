@@ -1,6 +1,6 @@
 import { apiFetch } from "./client";
 import type { Comment, CursorPage, Photo } from "../types/entities";
-import type { PhotoSort } from "../types/api";
+import type { PhotoSort, PhotoUploadUrlResponse } from "../types/api";
 
 // Ver seções 5.2, 5.6, 5.7 e 8.
 export const photosApi = {
@@ -20,6 +20,15 @@ export const photosApi = {
 
   like: (id: string) => apiFetch<void>(`/photos/${id}/likes`, { method: "POST" }),
   unlike: (id: string) => apiFetch<void>(`/photos/${id}/likes`, { method: "DELETE" }),
+
+  // Passo 1 do upload em 2 passos (seção 5.8) — só `image/jpeg` ou `image/png`. `uploadUrl`
+  // expira em 5min; o PUT nela vai direto pro storage, não passa pela nossa API.
+  requestUploadUrl: (contentType: "image/jpeg" | "image/png") =>
+    apiFetch<PhotoUploadUrlResponse>("/photos/upload-url", { method: "POST", body: { contentType } }),
+
+  // Passo 3 — usa o `imageUrl` devolvido pelo passo 1 depois do PUT ter sido feito.
+  create: (payload: { locationId: string; imageUrl: string; caption?: string | null }) =>
+    apiFetch<Photo>("/photos", { method: "POST", body: payload }),
 
   // Raízes só (parentCommentId sempre null aqui), mais recentes primeiro.
   getComments: (id: string, cursor?: string | null) => {

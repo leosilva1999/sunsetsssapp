@@ -34,7 +34,20 @@
         }
       ],
       "expo-secure-store",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O app precisa de acesso às suas fotos pra você postar um pôr do sol.",
+          "cameraPermission": "O app precisa da câmera pra você tirar uma foto do pôr do sol."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Usamos sua localização só pra preencher as coordenadas quando você cadastra um local novo."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

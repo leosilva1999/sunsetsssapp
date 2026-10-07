@@ -74,7 +74,10 @@ export default function OwnProfileScreen() {
           ) : null}
         </View>
 
-        <Button label="Sair" variant="ghost" onPress={handleLogout} loading={logout.isPending} />
+        <View style={styles.actions}>
+          <Button label="Postar foto" onPress={() => router.push("/photos/new")} />
+          <Button label="Sair" variant="ghost" onPress={handleLogout} loading={logout.isPending} />
+        </View>
       </View>
     </Screen>
   );
@@ -82,6 +85,7 @@ export default function OwnProfileScreen() {
 
 const styles = StyleSheet.create({
   content: { flex: 1, padding: 24, justifyContent: "space-between" },
+  actions: { gap: 10 },
   header: { alignItems: "center", gap: 8, marginTop: 24 },
   signedOut: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 32 },
   signedOutTitle: { fontSize: 20 },

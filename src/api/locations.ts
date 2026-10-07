@@ -27,6 +27,10 @@ export const locationsApi = {
 
   get: (id: string) => apiFetch<Location>(`/locations/${id}`, { auth: false }),
 
+  // Seção 5.8 — cadastrar local novo direto do fluxo de postar foto, quando a busca não acha.
+  create: (payload: { name: string; latitude: number; longitude: number; city: string }) =>
+    apiFetch<Location>("/locations", { method: "POST", body: payload }),
+
   // likedByCurrentUser vem sempre false aqui, independente do token — não resolvido pra esta
   // listagem (docs/API.md, gotcha #3).
   getPhotos: (id: string, cursor?: string | null) => {
