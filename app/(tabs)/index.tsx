@@ -9,6 +9,7 @@ import { BrandLogo } from "@/src/components/ui/BrandLogo";
 import { Button } from "@/src/components/ui/Button";
 import { LocationRankCard } from "@/src/components/LocationRankCard";
 import { PhotoCard } from "@/src/components/PhotoCard";
+import { AccountMenu } from "@/src/components/AccountMenu";
 import { useTheme } from "@/src/theme/useTheme";
 import { useThemeStore } from "@/src/theme/themeStore";
 import { useAuthStore } from "@/src/stores/authStore";
@@ -58,6 +59,7 @@ export default function HomeScreen() {
                   )}
                 </Pressable>
               )}
+              <AccountMenu />
             </View>
           </View>
 

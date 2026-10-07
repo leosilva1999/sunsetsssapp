@@ -1,39 +1,22 @@
-import { Alert, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
+import { StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 
 import { Screen } from "@/src/components/ui/Screen";
 import { Button } from "@/src/components/ui/Button";
+import { ProfileContent } from "@/src/components/ProfileContent";
 import { useTheme } from "@/src/theme/useTheme";
 import { useAuthStore } from "@/src/stores/authStore";
-import { useLogout } from "@/src/hooks/useAuthMutations";
-import { usersApi } from "@/src/api/users";
 
-// Versão mínima da seção 5.9 — mostra o usuário logado e permite sair. `authStore.user` (vindo
-// de login/register/refresh) não traz followersCount/followingCount — essa é a
-// `PublicUserResponse` de `GET /users/{id}` (docs/API.md), então buscamos à parte. Avatar/bio
-// editáveis e grid de fotos ficam pra próxima entrega.
+// Seção 5.9 — sempre o perfil completo (mesmo componente usado em `/profile/{id}`), não um
+// resumo à parte. "Sair" morou aqui antes; agora vive no menu da miniatura de avatar no header
+// da Home (ver src/components/AccountMenu.tsx).
 export default function OwnProfileScreen() {
   const { colors, fonts } = useTheme();
   const authUser = useAuthStore((s) => s.user);
   const isSignedIn = useAuthStore((s) => s.status === "signedIn");
-  const logout = useLogout();
 
-  const profile = useQuery({
-    queryKey: ["users", authUser?.id],
-    queryFn: () => usersApi.get(authUser!.id),
-    enabled: !!authUser,
-  });
-
-  const handleLogout = () => {
-    Alert.alert("Sair da conta", "Tem certeza que quer sair?", [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Sair", style: "destructive", onPress: () => logout.mutate() },
-    ]);
-  };
-
-  if (!isSignedIn) {
+  if (!isSignedIn || !authUser) {
     return (
       <Screen>
         <View style={styles.signedOut}>
@@ -51,66 +34,14 @@ export default function OwnProfileScreen() {
   }
 
   return (
-    <Screen>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          {authUser?.avatarUrl ? (
-            <Image source={{ uri: authUser.avatarUrl }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatarFallback, { backgroundColor: colors.surfaceAlt }]}>
-              <Ionicons name="person" size={32} color={colors.textSecondary} />
-            </View>
-          )}
-          <Text style={[styles.name, { color: colors.textPrimary, fontFamily: fonts.display }]}>
-            {authUser?.name ?? "—"}
-          </Text>
-          {authUser?.bio ? (
-            <Text style={[styles.bio, { color: colors.textSecondary, fontFamily: fonts.body }]}>{authUser.bio}</Text>
-          ) : null}
-          {profile.data ? (
-            <View style={styles.countsRow}>
-              <Pressable onPress={() => router.push(`/profile/${authUser!.id}/followers`)}>
-                <Text style={[styles.counter, { color: colors.textSecondary, fontFamily: fonts.mono }]}>
-                  {profile.data.followersCount} seguidores
-                </Text>
-              </Pressable>
-              <Text style={[styles.counter, { color: colors.textSecondary, fontFamily: fonts.mono }]}>·</Text>
-              <Pressable onPress={() => router.push(`/profile/${authUser!.id}/following`)}>
-                <Text style={[styles.counter, { color: colors.textSecondary, fontFamily: fonts.mono }]}>
-                  {profile.data.followingCount} seguindo
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
-          <Pressable onPress={() => router.push(`/profile/${authUser!.id}`)} hitSlop={6}>
-            <Text style={[styles.viewFullProfile, { color: colors.accent, fontFamily: fonts.bodyMedium }]}>
-              Ver perfil completo
-            </Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.actions}>
-          <Button label="Postar foto" onPress={() => router.push("/photos/new")} />
-          <Button label="Editar perfil" variant="secondary" onPress={() => router.push("/profile/edit")} />
-          <Button label="Sair" variant="ghost" onPress={handleLogout} loading={logout.isPending} />
-        </View>
-      </View>
+    <Screen edges={["top"]}>
+      <ProfileContent userId={authUser.id} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { flex: 1, padding: 24, justifyContent: "space-between" },
-  actions: { gap: 10 },
-  header: { alignItems: "center", gap: 8, marginTop: 24 },
   signedOut: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 32 },
   signedOutTitle: { fontSize: 20 },
   signedOutSubtitle: { fontSize: 14, textAlign: "center", lineHeight: 20 },
-  avatar: { width: 88, height: 88, borderRadius: 44 },
-  avatarFallback: { width: 88, height: 88, borderRadius: 44, alignItems: "center", justifyContent: "center" },
-  name: { fontSize: 22, marginTop: 8 },
-  bio: { fontSize: 14, textAlign: "center" },
-  countsRow: { flexDirection: "row", gap: 6, marginTop: 4 },
-  counter: { fontSize: 12 },
-  viewFullProfile: { fontSize: 13, marginTop: 10 },
 });
