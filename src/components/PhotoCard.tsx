@@ -70,8 +70,8 @@ export function PhotoCard({ photo, queryKey }: PhotoCardProps) {
 }
 
 const styles = StyleSheet.create({
-  card: { flexBasis: "47%", flexGrow: 1, borderRadius: 16, overflow: "hidden", aspectRatio: 0.82 },
-  image: { ...StyleSheet.absoluteFillObject },
+  card: { flexBasis: "47%", flexGrow: 1, borderRadius: 16, overflow: "hidden" },
+  image: { width: "100%", aspectRatio: 0.82 },
   likeButton: {
     position: "absolute",
     top: 8,
