@@ -112,3 +112,13 @@ the one list endpoint that is **not** paginated (plain array, `?limit=`).
   and the machine's Wi-Fi IP can change between sessions; re-check with `ipconfig`/
   `Get-NetIPConfiguration` if the app suddenly can't reach the API, rather than assuming
   something broke in code.
+- **Uploaded photos/avatars render blank on a phone, even though seed photos (external URLs)
+  show fine**: the backend's dev photo storage is LocalStack, and its `Storage:ServiceUrl` /
+  `Storage:PublicBaseUrl` (`appsettings.Development.json`) default to `http://localhost:4566` —
+  that `localhost` is the backend PC, unreachable from the phone, for both the presigned upload
+  PUT and the later image GET. Fix lives in the backend repo: `appsettings.Development.local.json`
+  (gitignored, loaded by `Program.cs`, see `appsettings.Development.local.json.example`) overrides
+  both to the current LAN IP. Needs a full rebuild (not just a process restart) the first time
+  it's created, since it's a new content file MSBuild has to pick up and copy to `bin/`. Existing
+  photos uploaded before the fix keep their broken `localhost` URL in the DB permanently — only
+  new uploads after the fix pick up the corrected URL.
