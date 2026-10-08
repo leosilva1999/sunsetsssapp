@@ -1,4 +1,6 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, type PressableProps } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import type { ComponentProps } from "react";
 import { useTheme } from "../../theme/useTheme";
 
 type Variant = "primary" | "secondary" | "ghost";
@@ -7,9 +9,11 @@ interface ButtonProps extends Omit<PressableProps, "style"> {
   label: string;
   variant?: Variant;
   loading?: boolean;
+  /** Ícone opcional à esquerda do texto (ex.: "logo-google" no botão de login social). */
+  icon?: ComponentProps<typeof Ionicons>["name"];
 }
 
-export function Button({ label, variant = "primary", loading, disabled, ...rest }: ButtonProps) {
+export function Button({ label, variant = "primary", loading, disabled, icon, ...rest }: ButtonProps) {
   const { colors, fonts } = useTheme();
   const isDisabled = disabled || loading;
 
@@ -36,7 +40,10 @@ export function Button({ label, variant = "primary", loading, disabled, ...rest 
       {loading ? (
         <ActivityIndicator color={textColor} />
       ) : (
-        <Text style={[styles.label, { color: textColor, fontFamily: fonts.bodyBold }]}>{label}</Text>
+        <View style={styles.content}>
+          {icon ? <Ionicons name={icon} size={18} color={textColor} style={styles.icon} /> : null}
+          <Text style={[styles.label, { color: textColor, fontFamily: fonts.bodyBold }]}>{label}</Text>
+        </View>
       )}
     </Pressable>
   );
@@ -49,6 +56,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
+  },
+  content: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  icon: {
+    marginRight: 8,
   },
   label: {
     fontSize: 16,

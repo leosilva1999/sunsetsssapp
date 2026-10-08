@@ -93,7 +93,7 @@ export default function RegisterScreen() {
               <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
             </View>
 
-            <Button label="Continuar com Google" variant="secondary" onPress={handleGoogle} />
+            <Button label="Continuar com Google" variant="secondary" icon="logo-google" onPress={handleGoogle} />
           </View>
 
           <Link

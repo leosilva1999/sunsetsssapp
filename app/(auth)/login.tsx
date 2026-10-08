@@ -86,7 +86,7 @@ export default function LoginScreen() {
               <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
             </View>
 
-            <Button label="Continuar com Google" variant="secondary" onPress={handleGoogle} />
+            <Button label="Continuar com Google" variant="secondary" icon="logo-google" onPress={handleGoogle} />
 
             <Pressable onPress={() => router.replace("/(tabs)")} hitSlop={8}>
               <Text style={[styles.guestLink, { color: colors.textOnGradient, fontFamily: fonts.bodyMedium }]}>
