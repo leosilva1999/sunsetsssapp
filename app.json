@@ -45,7 +45,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Usamos sua localização só pra preencher as coordenadas quando você cadastra um local novo."
+          "locationWhenInUsePermission": "Usamos sua localização para mostrar locais perto de você e preencher as coordenadas ao cadastrar um local novo."
         }
       ]
     ],

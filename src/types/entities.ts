@@ -39,6 +39,8 @@ export interface Location {
   city: string;
   avgRating: number;
   createdAt: string;
+  // Só preenchido na busca "perto de mim" (GET /locations?lat=&lng=); null fora dela.
+  distanceKm: number | null;
 }
 
 export interface Photo {

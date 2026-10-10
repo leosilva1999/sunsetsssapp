@@ -17,18 +17,16 @@ import { usePhotoCount, useRecentPhotos, useWeeklyRanking } from "@/src/hooks/us
 import { useUnreadCount } from "@/src/hooks/useNotifications";
 import type { PhotoSort } from "@/src/types/api";
 
-type PhotosTab = PhotoSort | "nearby";
-
 export default function HomeScreen() {
   const { colors, fonts, scheme, sunIconColor } = useTheme();
   const setThemePreference = useThemeStore((s) => s.setPreference);
   const isSignedIn = useAuthStore((s) => s.status === "signedIn");
   const [search, setSearch] = useState("");
-  const [photosTab, setPhotosTab] = useState<PhotosTab>("recent");
+  const [photosTab, setPhotosTab] = useState<PhotoSort>("recent");
 
   const photoCount = usePhotoCount();
   const weeklyRanking = useWeeklyRanking();
-  const recentPhotos = useRecentPhotos(photosTab === "nearby" ? "recent" : photosTab);
+  const recentPhotos = useRecentPhotos(photosTab);
   const unreadCount = useUnreadCount();
 
   const handleSearch = () => {
@@ -131,20 +129,13 @@ export default function HomeScreen() {
               active={photosTab === "top"}
               onPress={() => setPhotosTab("top")}
             />
-            <PhotosTabButton label="Perto de mim" active={photosTab === "nearby"} onPress={() => setPhotosTab("nearby")} />
           </View>
 
-          {photosTab === "nearby" ? (
-            <Text style={[styles.emptyText, { color: colors.textSecondary, fontFamily: fonts.body }]}>
-              Filtro por proximidade ainda não disponível.
-            </Text>
-          ) : (
-            <View style={styles.photoGrid}>
-              {(recentPhotos.data?.items ?? []).slice(0, 6).map((photo) => (
-                <PhotoCard key={photo.id} photo={photo} queryKey={["photos", "list", photosTab]} />
-              ))}
-            </View>
-          )}
+          <View style={styles.photoGrid}>
+            {(recentPhotos.data?.items ?? []).slice(0, 6).map((photo) => (
+              <PhotoCard key={photo.id} photo={photo} queryKey={["photos", "list", photosTab]} />
+            ))}
+          </View>
         </View>
 
         <View style={[styles.cta, { backgroundColor: colors.surfaceAlt }]}>

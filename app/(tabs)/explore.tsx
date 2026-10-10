@@ -8,6 +8,7 @@ import { LocationCard } from "@/src/components/LocationCard";
 import { useTheme } from "@/src/theme/useTheme";
 import { useDebouncedValue } from "@/src/hooks/useDebouncedValue";
 import { useLocationsSearch } from "@/src/hooks/useLocationsSearch";
+import { NEARBY_DEFAULT_RADIUS_KM, NEARBY_RADIUS_OPTIONS_KM, useNearbyLocation } from "@/src/hooks/useNearbyLocation";
 import type { Location } from "@/src/types/entities";
 
 // Seção 5.3: busca instantânea (debounced no client — 3+ chars é FULLTEXT por prefixo de
@@ -18,7 +19,12 @@ export default function ExploreScreen() {
   const [search, setSearch] = useState(params.q ?? "");
   const debouncedSearch = useDebouncedValue(search.trim(), 400);
 
-  const query = useLocationsSearch(debouncedSearch);
+  // "Perto de mim" só liga ao toque no chip (pede permissão nesse momento, não na abertura).
+  const nearby = useNearbyLocation();
+  const [radius, setRadius] = useState(NEARBY_DEFAULT_RADIUS_KM);
+  const nearbyOn = nearby.status === "ready" && nearby.coords !== null;
+
+  const query = useLocationsSearch(debouncedSearch, nearby.coords && nearbyOn ? { ...nearby.coords, radius } : null);
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch, isRefetching } = query;
   // Sem conexão (NetInfo) — não é a mesma coisa que erro de servidor. Ver docs do TanStack
   // Query sobre `networkMode`/`fetchStatus: "paused"`.
@@ -63,6 +69,61 @@ export default function ExploreScreen() {
                 </Pressable>
               )}
             </View>
+            <View style={styles.chipRow}>
+              <Pressable
+                onPress={nearbyOn ? nearby.deactivate : nearby.activate}
+                disabled={nearby.status === "loading"}
+                style={[
+                  styles.chip,
+                  {
+                    backgroundColor: nearbyOn ? colors.accent : colors.surface,
+                    borderColor: nearbyOn ? colors.accent : colors.border,
+                  },
+                ]}
+              >
+                {nearby.status === "loading" ? (
+                  <ActivityIndicator size="small" color={colors.textPrimary} />
+                ) : (
+                  <Ionicons name="navigate" size={14} color={nearbyOn ? "#ffffff" : colors.textPrimary} />
+                )}
+                <Text
+                  style={[styles.chipText, { color: nearbyOn ? "#ffffff" : colors.textPrimary, fontFamily: fonts.body }]}
+                >
+                  Perto de mim
+                </Text>
+              </Pressable>
+              {nearbyOn &&
+                NEARBY_RADIUS_OPTIONS_KM.map((km) => {
+                  const selected = km === radius;
+                  return (
+                    <Pressable
+                      key={km}
+                      onPress={() => setRadius(km)}
+                      style={[
+                        styles.chip,
+                        {
+                          backgroundColor: selected ? colors.surfaceAlt : colors.surface,
+                          borderColor: selected ? colors.accent : colors.border,
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.chipText, { color: colors.textPrimary, fontFamily: fonts.body }]}>
+                        {km} km
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+            </View>
+            {nearby.status === "denied" && (
+              <Text style={[styles.hint, { color: colors.danger, fontFamily: fonts.body }]}>
+                Permissão de localização negada — libere nas configurações do celular pra ver locais perto de você.
+              </Text>
+            )}
+            {nearby.status === "error" && (
+              <Text style={[styles.hint, { color: colors.danger, fontFamily: fonts.body }]}>
+                Não foi possível obter sua localização agora. Tente novamente.
+              </Text>
+            )}
           </View>
         }
         ListEmptyComponent={
@@ -72,9 +133,11 @@ export default function ExploreScreen() {
                 ? "Sem conexão — verifique sua internet."
                 : isError
                   ? "Não foi possível carregar os locais agora."
-                  : debouncedSearch
-                    ? "Nenhum local encontrado."
-                    : "Nenhum local cadastrado ainda."}
+                  : nearbyOn
+                    ? `Nenhum local em até ${radius} km${debouncedSearch ? " com essa busca" : ""} — tente um raio maior.`
+                    : debouncedSearch
+                      ? "Nenhum local encontrado."
+                      : "Nenhum local cadastrado ainda."}
             </Text>
           ) : null
         }
@@ -102,6 +165,18 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   searchInput: { flex: 1, fontSize: 14 },
+  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    minHeight: 36,
+  },
+  chipText: { fontSize: 13 },
+  hint: { fontSize: 13 },
   row: { gap: 10, marginBottom: 10 },
   emptyText: { fontSize: 14, textAlign: "center", marginTop: 32 },
   footerLoading: { marginVertical: 20 },
