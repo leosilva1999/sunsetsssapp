@@ -24,6 +24,8 @@ interface RequestOptions {
    * conventions" da doc). Default `true`, para os 🔒.
    */
   auth?: boolean;
+  /** pra cancelar a requisição em voo (ex.: sugestões de busca superadas por uma digitação mais nova). */
+  signal?: AbortSignal;
   /** uso interno: evita loop infinito de retry após um refresh malsucedido. */
   _isRetry?: boolean;
 }
@@ -85,7 +87,7 @@ async function refreshAccessToken(): Promise<string> {
 }
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, auth = true, _isRetry = false } = options;
+  const { method = "GET", body, auth = true, signal, _isRetry = false } = options;
 
   const headers: Record<string, string> = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
@@ -97,6 +99,7 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
+    signal,
   });
 
   if (res.ok) return (await parseBody(res)) as T;

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
@@ -15,9 +15,16 @@ import type { Location } from "@/src/types/entities";
 // palavra no backend, <3 chars cai pra substring) + grid de cards.
 export default function ExploreScreen() {
   const { colors, fonts } = useTheme();
-  const params = useLocalSearchParams<{ q?: string }>();
+  const params = useLocalSearchParams<{ q?: string; ts?: string }>();
   const [search, setSearch] = useState(params.q ?? "");
   const debouncedSearch = useDebouncedValue(search.trim(), 400);
+
+  // As abas ficam montadas depois da primeira visita, então `useState(params.q)` só vale na
+  // criação: uma busca vinda da Home (campo ou "Ver todos os resultados") com a Explorar já
+  // aberta chega só como param novo. `ts` muda a cada envio, inclusive pra repetir o mesmo texto.
+  useEffect(() => {
+    if (params.q !== undefined || params.ts !== undefined) setSearch(params.q ?? "");
+  }, [params.q, params.ts]);
 
   // "Perto de mim" só liga ao toque no chip (pede permissão nesse momento, não na abertura).
   const nearby = useNearbyLocation();

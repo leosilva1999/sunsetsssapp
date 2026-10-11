@@ -1,21 +1,24 @@
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 
 import { BrandLogo } from "@/src/components/ui/BrandLogo";
 import { Button } from "@/src/components/ui/Button";
 import { LocationRankCard } from "@/src/components/LocationRankCard";
 import { PhotoCard } from "@/src/components/PhotoCard";
+import { LocationSuggestions } from "@/src/components/LocationSuggestions";
 import { AccountMenu } from "@/src/components/AccountMenu";
 import { useTheme } from "@/src/theme/useTheme";
 import { useThemeStore } from "@/src/theme/themeStore";
 import { useAuthStore } from "@/src/stores/authStore";
 import { usePhotoCount, useRecentPhotos, useWeeklyRanking } from "@/src/hooks/useHomeData";
 import { useUnreadCount } from "@/src/hooks/useNotifications";
+import { useLocationSuggestions } from "@/src/hooks/useLocationSuggestions";
 import type { PhotoSort } from "@/src/types/api";
+import type { Location } from "@/src/types/entities";
 
 export default function HomeScreen() {
   const { colors, fonts, scheme, sunIconColor } = useTheme();
@@ -29,12 +32,64 @@ export default function HomeScreen() {
   const recentPhotos = useRecentPhotos(photosTab);
   const unreadCount = useUnreadCount();
 
+  // Sugestões instantâneas (dropdown). O dropdown é irmão do hero/ScrollView, posicionado em
+  // absoluto abaixo do campo: no Android, um filho que extrapola os limites do pai não recebe
+  // toque, então não dá pra deixá-lo dentro do hero.
+  const rootRef = useRef<View>(null);
+  const searchRef = useRef<View>(null);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [dropdownTop, setDropdownTop] = useState(0);
+  const [rootWindowY, setRootWindowY] = useState(0);
+  // Topo do teclado em coordenadas da tela (null = recolhido) — limita a altura do dropdown pro
+  // teclado não cobrir as sugestões; a lista rola dentro do espaço que sobra.
+  const [keyboardTop, setKeyboardTop] = useState<number | null>(null);
+  const { height: windowHeight } = useWindowDimensions();
+  const suggestions = useLocationSuggestions(search, suggestionsOpen);
+
+  const openSuggestions = () => {
+    setSuggestionsOpen(true);
+    rootRef.current?.measureInWindow((_x, rootY) => {
+      setRootWindowY(rootY);
+      searchRef.current?.measureInWindow((_sx, searchY, _sw, searchHeight) => {
+        setDropdownTop(searchY + searchHeight - rootY + 6);
+      });
+    });
+  };
+  const closeSuggestions = useCallback(() => setSuggestionsOpen(false), []);
+
+  // Fecha ao sair da aba. Recolher o teclado NÃO fecha: é como a pessoa vê a lista inteira.
+  useFocusEffect(useCallback(() => closeSuggestions, [closeSuggestions]));
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", (event) => setKeyboardTop(event.endCoordinates.screenY));
+    const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardTop(null));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
   const handleSearch = () => {
-    router.push({ pathname: "/(tabs)/explore", params: search.trim() ? { q: search.trim() } : {} });
+    closeSuggestions();
+    Keyboard.dismiss();
+    router.push({ pathname: "/(tabs)/explore", params: { q: search.trim(), ts: String(Date.now()) } });
   };
 
+  const handleSelectSuggestion = (location: Location) => {
+    closeSuggestions();
+    Keyboard.dismiss();
+    router.push(`/locations/${location.id}`);
+  };
+
+  const showSuggestions = suggestionsOpen && suggestions.visible;
+  // Espaço livre abaixo do campo: até o topo do teclado, ou até o fim da tela. Sem piso mínimo
+  // alto de propósito — o rodapé "Ver todos" precisa continuar visível.
+  const dropdownMaxHeight = Math.max(
+    140,
+    (keyboardTop ?? windowHeight) - (rootWindowY + dropdownTop) - (keyboardTop ? 8 : 16)
+  );
+
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
+    <View ref={rootRef} collapsable={false} style={[styles.root, { backgroundColor: colors.background }]}>
       <LinearGradient colors={colors.gradient} style={styles.hero} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}>
         <SafeAreaView edges={["top"]}>
           <View style={styles.header}>
@@ -72,10 +127,14 @@ export default function HomeScreen() {
             compartilhe as suas.
           </Text>
 
-          <View style={[styles.searchRow, { backgroundColor: colors.surface }]}>
+          <View ref={searchRef} collapsable={false} style={[styles.searchRow, { backgroundColor: colors.surface }]}>
             <TextInput
               value={search}
-              onChangeText={setSearch}
+              onChangeText={(text) => {
+                setSearch(text);
+                openSuggestions();
+              }}
+              onFocus={openSuggestions}
               onSubmitEditing={handleSearch}
               placeholder="Buscar por cidade, praia ou mirante..."
               placeholderTextColor={colors.textSecondary}
@@ -91,7 +150,7 @@ export default function HomeScreen() {
         </SafeAreaView>
       </LinearGradient>
 
-      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.textPrimary, fontFamily: fonts.display }]}>
@@ -149,6 +208,23 @@ export default function HomeScreen() {
           />
         </View>
       </ScrollView>
+
+      {showSuggestions && (
+        <>
+          <Pressable style={[styles.backdrop, { top: dropdownTop }]} onPress={closeSuggestions} />
+          <View style={[styles.dropdown, { top: dropdownTop, backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <LocationSuggestions
+              text={search}
+              locations={suggestions.locations}
+              isSearching={suggestions.isSearching}
+              error={suggestions.error}
+              maxHeight={dropdownMaxHeight}
+              onSelect={handleSelectSuggestion}
+              onSeeAll={handleSearch}
+            />
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -224,6 +300,20 @@ const styles = StyleSheet.create({
   tabButton: { borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
   tabButtonLabel: { fontSize: 12 },
   photoGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  backdrop: { position: "absolute", left: 0, right: 0, bottom: 0 },
+  dropdown: {
+    position: "absolute",
+    left: 20,
+    right: 20,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: "hidden",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+  },
   cta: { borderRadius: 20, padding: 24, alignItems: "center", gap: 10 },
   ctaTitle: { fontSize: 18, textAlign: "center" },
 });

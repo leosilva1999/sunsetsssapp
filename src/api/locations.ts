@@ -7,7 +7,7 @@ import type { LocationRankingPeriod, SunsetInfo } from "../types/api";
 // client é obrigatório, o rate limit de 40 req/10s é só rede de segurança. Paginada por cursor,
 // diferente do ranking abaixo.
 export const locationsApi = {
-  search: (params: { q?: string; lat?: number; lng?: number; radius?: number; cursor?: string | null; limit?: number }) => {
+  search: (params: { q?: string; lat?: number; lng?: number; radius?: number; cursor?: string | null; limit?: number; signal?: AbortSignal }) => {
     const qs = new URLSearchParams();
     if (params.q) qs.set("q", params.q);
     if (params.lat !== undefined) qs.set("lat", String(params.lat));
@@ -15,7 +15,7 @@ export const locationsApi = {
     if (params.radius !== undefined) qs.set("radius", String(params.radius));
     if (params.cursor) qs.set("cursor", params.cursor);
     if (params.limit !== undefined) qs.set("limit", String(params.limit));
-    return apiFetch<CursorPage<Location>>(`/locations?${qs.toString()}`, { auth: false });
+    return apiFetch<CursorPage<Location>>(`/locations?${qs.toString()}`, { auth: false, signal: params.signal });
   },
 
   // Não paginado — array plano, capado por `limit` (default 20, clamp 1–50 no servidor).
