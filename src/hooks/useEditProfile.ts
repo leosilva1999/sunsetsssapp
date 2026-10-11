@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { usersApi } from "../api/users";
 import { useAuthStore } from "../stores/authStore";
 import { uploadImageToUrl, inferImageContentType } from "../lib/uploadImage";
@@ -18,6 +18,7 @@ interface SaveProfileInput {
 // partial update funcionar (seção Users).
 export function useSaveProfile() {
   const setUser = useAuthStore((s) => s.setUser);
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (input: SaveProfileInput) => {
@@ -34,6 +35,10 @@ export function useSaveProfile() {
 
       return usersApi.updateMe(payload);
     },
-    onSuccess: (user) => setUser(user),
+    onSuccess: (user) => {
+      setUser(user);
+      // O perfil exibido vem de GET /users/{id} (cache próprio), não do authStore.
+      void queryClient.invalidateQueries({ queryKey: ["users", user.id] });
+    },
   });
 }

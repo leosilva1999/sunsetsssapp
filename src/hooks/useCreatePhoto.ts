@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { photosApi } from "../api/photos";
+import { useAuthStore } from "../stores/authStore";
 import { uploadImageToUrl, inferImageContentType } from "../lib/uploadImage";
 
 interface CreatePhotoInput {
@@ -22,6 +23,9 @@ export function useCreatePhoto() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["photos"] });
+      // A foto nova também aparece no próprio perfil sem precisar de refresh manual.
+      const userId = useAuthStore.getState().user?.id;
+      if (userId) void queryClient.invalidateQueries({ queryKey: ["users", userId] });
     },
   });
 }

@@ -1,12 +1,14 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
 import { Button } from "./ui/Button";
 import { PhotoCard } from "./PhotoCard";
+import { AvatarMenu } from "./AvatarMenu";
 import { useTheme } from "../theme/useTheme";
 import { useAuthStore } from "../stores/authStore";
+import { useChangeAvatar } from "../hooks/useChangeAvatar";
 import { useToggleFollow, useUserPhotos, useUserProfile } from "../hooks/useUserProfile";
 import type { Photo } from "../types/entities";
 
@@ -31,7 +33,23 @@ export function ProfileContent({ userId }: ProfileContentProps) {
   const photos = useUserPhotos(userId);
   const toggleFollow = useToggleFollow(userId);
 
+  const changeAvatar = useChangeAvatar();
+
   const photoItems = useMemo<Photo[]>(() => photos.data?.pages.flatMap((page) => page.items) ?? [], [photos.data]);
+
+  // Arrastar pra baixo: refaz perfil (contadores, avatar) e fotos. Estado próprio em vez de
+  // `isRefetching` pra o spinner só aparecer num refresh manual, não em refetch automático.
+  const [refreshing, setRefreshing] = useState(false);
+  const { refetch: refetchProfile } = profile;
+  const { refetch: refetchPhotos } = photos;
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refetchProfile(), refetchPhotos()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchProfile, refetchPhotos]);
 
   if (profile.isLoading) {
     return (
@@ -59,13 +77,22 @@ export function ProfileContent({ userId }: ProfileContentProps) {
       columnWrapperStyle={styles.photoRow}
       contentContainerStyle={styles.content}
       renderItem={({ item }) => <PhotoCard photo={item} queryKey={["users", userId, "photos"]} />}
+      onRefresh={handleRefresh}
+      refreshing={refreshing}
       onEndReachedThreshold={0.4}
       onEndReached={() => {
         if (photos.hasNextPage && !photos.isFetchingNextPage) photos.fetchNextPage();
       }}
       ListHeaderComponent={
         <View style={styles.header}>
-          {profile.data.avatarUrl ? (
+          {isOwnProfile ? (
+            <AvatarMenu
+              avatarUrl={profile.data.avatarUrl ?? null}
+              isUploading={changeAvatar.isUploading}
+              onTakePhoto={changeAvatar.takePhoto}
+              onPickFromLibrary={changeAvatar.pickFromLibrary}
+            />
+          ) : profile.data.avatarUrl ? (
             <Image source={{ uri: profile.data.avatarUrl }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatarFallback, { backgroundColor: colors.surfaceAlt }]}>
