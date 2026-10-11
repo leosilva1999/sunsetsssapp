@@ -119,10 +119,10 @@ export default function HomeScreen() {
           <Text style={[styles.counter, { color: colors.textOnGradient, fontFamily: fonts.mono }]}>
             {photoCount.data ? `${photoCount.data.count} PÔR DO SOL CATALOGADOS` : " "}
           </Text>
-          <Text style={[styles.title, { color: colors.textOnGradient, fontFamily: fonts.display }]}>
+          <Text style={[styles.title, { color: colors.brandSubtitle, fontFamily: fonts.display }]}>
             Encontre o melhor lugar pra ver o sol se pôr
           </Text>
-          <Text style={[styles.subtitle, { color: colors.textOnGradient, fontFamily: fonts.body }]}>
+          <Text style={[styles.subtitle, { color: colors.brandSubtitle, fontFamily: fonts.body }]}>
             Descubra os pontos de pôr do sol mais bem avaliados perto de você, veja fotos de quem já foi e
             compartilhe as suas.
           </Text>
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   unreadBadgeText: { color: "#fff", fontSize: 10, fontWeight: "700" },
   counter: { fontSize: 12, letterSpacing: 1, marginTop: 28 },
   title: { fontSize: 32, lineHeight: 38, marginTop: 8 },
-  subtitle: { fontSize: 14, lineHeight: 20, marginTop: 12, opacity: 0.9 },
+  subtitle: { fontSize: 14, lineHeight: 20, marginTop: 12 },
   searchRow: {
     flexDirection: "row",
     alignItems: "center",

@@ -14,6 +14,12 @@ export const gradient = {
   eveningPink: "#e85d8a",
 };
 
+// Laranja queimado do logo "Sunsetsss" (amostrado de assets/images/brand-logo-*.png) e um tom mais
+// escuro da mesma família pro texto pequeno: sobre o gradiente dourado/laranja das telas de auth
+// o laranja puro do logo dá ~3:1 de contraste (ok só pra título grande); o tom escuro chega a ~4,5:1.
+export const brandOrange = "#c84008";
+export const brandOrangeDeep = "#8a2c05";
+
 export interface ThemeColors {
   background: string;
   surface: string;
@@ -22,6 +28,10 @@ export interface ThemeColors {
   textPrimary: string;
   textSecondary: string;
   textOnGradient: string;
+  /** título sobre o gradiente das telas de auth — laranja do logo no claro, branco no escuro. */
+  brandTitle: string;
+  /** subtítulo sobre o gradiente das telas de auth — mesma família, mais escuro (legibilidade). */
+  brandSubtitle: string;
   accent: string; // rosa de entardecer — CTAs secundários, badges
   danger: string;
   success: string;
@@ -36,6 +46,8 @@ export const darkColors: ThemeColors = {
   textPrimary: "#fdf6ec",
   textSecondary: "#c9bddb",
   textOnGradient: "#fdf6ec",
+  brandTitle: "#ffffff",
+  brandSubtitle: "#fdf6ec",
   accent: gradient.eveningPink,
   danger: "#ff6b6b",
   success: "#5fd6a4",
@@ -50,6 +62,8 @@ export const lightColors: ThemeColors = {
   textPrimary: "#1e1038",
   textSecondary: "#6b5e80",
   textOnGradient: "#1e1038",
+  brandTitle: brandOrange,
+  brandSubtitle: brandOrangeDeep,
   accent: gradient.eveningPink,
   danger: "#d64545",
   success: "#2f9e6e",

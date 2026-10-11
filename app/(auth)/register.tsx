@@ -47,8 +47,10 @@ export default function RegisterScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
-            <BrandLogo variant="vertical" height={72} />
-            <Text style={[styles.title, { color: colors.textOnGradient, fontFamily: fonts.display }]}>
+            <View style={styles.logo}>
+              <BrandLogo variant="vertical" height={144} />
+            </View>
+            <Text style={[styles.title, { color: colors.brandTitle, fontFamily: fonts.display }]}>
               Crie sua conta
             </Text>
           </View>
@@ -119,6 +121,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { flexGrow: 1, padding: 24, justifyContent: "center", gap: 28 },
   header: { gap: 8 },
+  logo: { alignItems: "center" },
   title: { fontSize: 28, marginTop: 12 },
   form: { gap: 14 },
   termsRow: { flexDirection: "row", gap: 10, alignItems: "flex-start" },

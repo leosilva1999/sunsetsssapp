@@ -42,12 +42,14 @@ export default function LoginScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
-            <BrandLogo variant="vertical" height={72} />
-            <Text style={[styles.title, { color: colors.textOnGradient, fontFamily: fonts.display }]}>
+            <View style={styles.logo}>
+              <BrandLogo variant="vertical" height={144} />
+            </View>
+            <Text style={[styles.title, { color: colors.brandTitle, fontFamily: fonts.display }]}>
               Bem-vindo de volta
             </Text>
-            <Text style={[styles.subtitle, { color: colors.textOnGradient, fontFamily: fonts.body }]}>
-              Entre pra continuar explorando os melhores pôres do sol.
+            <Text style={[styles.subtitle, { color: colors.brandSubtitle, fontFamily: fonts.body }]}>
+              Encontre um pôr do sol de tirar o fôlego
             </Text>
           </View>
 
@@ -116,8 +118,9 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { flexGrow: 1, padding: 24, justifyContent: "center", gap: 32 },
   header: { gap: 8 },
+  logo: { alignItems: "center" },
   title: { fontSize: 28, marginTop: 12 },
-  subtitle: { fontSize: 15, opacity: 0.85 },
+  subtitle: { fontSize: 15 },
   form: { gap: 14 },
   forgotLink: { alignSelf: "flex-end", fontSize: 14 },
   divider: { flexDirection: "row", alignItems: "center", gap: 12, marginVertical: 4 },
