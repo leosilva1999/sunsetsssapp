@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { Alert, Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRef, useState } from "react";
+import { Alert, Image, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
@@ -13,22 +12,36 @@ import { useLogout } from "../hooks/useAuthMutations";
 // Perfil (ver app/(tabs)/profile.tsx).
 export function AccountMenu() {
   const { colors, fonts } = useTheme();
-  const insets = useSafeAreaInsets();
   const user = useAuthStore((s) => s.user);
-  const [open, setOpen] = useState(false);
+  const { width: windowWidth } = useWindowDimensions();
+  const avatarRef = useRef<View>(null);
+  // Posição do menu = posição medida do avatar (colado embaixo, alinhado à direita). Antes era um
+  // `top` fixo (insets.top + 54) — dentro do Modal, que na Android não conta a barra de status,
+  // o inset era somado duas vezes e o menu abria ~1cm abaixo do avatar.
+  const [anchor, setAnchor] = useState<{ top: number; right: number } | null>(null);
+  // Foto antiga pode apontar pra um host que não existe mais (ex.: IP anterior do storage em dev):
+  // sem fallback, o avatar ficava invisível — e o botão do menu, sem alvo visual.
+  const [avatarFailed, setAvatarFailed] = useState(false);
   const logout = useLogout();
 
   if (!user) return null;
 
   const isModerator = user.role === "Moderator" || user.role === "Admin";
 
+  const open = () => {
+    avatarRef.current?.measureInWindow((x, y, width, height) => {
+      setAnchor({ top: y + height + 6, right: Math.max(12, windowWidth - (x + width)) });
+    });
+  };
+  const close = () => setAnchor(null);
+
   const handleModeration = () => {
-    setOpen(false);
+    close();
     router.push("/moderation");
   };
 
   const handleLogout = () => {
-    setOpen(false);
+    close();
     Alert.alert("Sair da conta", "Tem certeza que quer sair?", [
       { text: "Cancelar", style: "cancel" },
       { text: "Sair", style: "destructive", onPress: () => logout.mutate() },
@@ -37,9 +50,9 @@ export function AccountMenu() {
 
   return (
     <>
-      <Pressable onPress={() => setOpen(true)} hitSlop={8}>
-        {user.avatarUrl ? (
-          <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
+      <Pressable ref={avatarRef} collapsable={false} onPress={open} hitSlop={8}>
+        {user.avatarUrl && !avatarFailed ? (
+          <Image source={{ uri: user.avatarUrl }} style={styles.avatar} onError={() => setAvatarFailed(true)} />
         ) : (
           <View style={[styles.avatarFallback, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
             <Ionicons name="person" size={16} color={colors.textSecondary} />
@@ -47,12 +60,12 @@ export function AccountMenu() {
         )}
       </Pressable>
 
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
+      <Modal visible={anchor !== null} transparent animationType="fade" onRequestClose={close}>
+        <Pressable style={styles.backdrop} onPress={close}>
           <View
             style={[
               styles.menu,
-              { top: insets.top + 54, backgroundColor: colors.surface, borderColor: colors.border },
+              { top: anchor?.top ?? 0, right: anchor?.right ?? 20, backgroundColor: colors.surface, borderColor: colors.border },
             ]}
           >
             {isModerator && (
@@ -87,7 +100,6 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1 },
   menu: {
     position: "absolute",
-    right: 20,
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
     paddingVertical: 6,
