@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import {
   Fraunces_400Regular,
   Fraunces_500Medium,
@@ -15,8 +16,12 @@ import {
   JetBrainsMono_500Medium,
 } from "@expo-google-fonts/jetbrains-mono";
 
-// Mapa pra `useFonts()` na raiz do app.
+// Mapa pra `useFonts()` na raiz do app. `Ionicons.font` entra aqui de propósito: sem isso a fonte
+// dos ícones só carrega preguiçosamente no primeiro render de cada ícone — em dev/release builds
+// nativos isso deixou os ícones em branco, ao contrário do Expo Go. Segurando a splash até ela
+// carregar, os ícones já existem no primeiro frame.
 export const fontsToLoad = {
+  ...Ionicons.font,
   Fraunces_400Regular,
   Fraunces_500Medium,
   Fraunces_600SemiBold,

@@ -28,6 +28,10 @@ export default function RootLayout() {
       .finally(() => setHydrated(true));
   }, [hydrate]);
 
+  useEffect(() => {
+    if (fontError) console.warn("Falha ao carregar fontes:", fontError);
+  }, [fontError]);
+
   const ready = (fontsLoaded || !!fontError) && hydrated;
 
   const onLayoutRootView = useCallback(() => {

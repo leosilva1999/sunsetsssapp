@@ -15,8 +15,8 @@
     "android": {
       "package": "com.sunsetsss.app",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/brand-icon.png",
-        "backgroundColor": "#1e1038"
+        "foregroundImage": "./assets/images/brand-icon-adaptive.png",
+        "backgroundColor": "#ffffff"
       }
     },
     "web": {
@@ -32,7 +32,7 @@
           "image": "./assets/images/brand-logo-vertical.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#1e1038"
+          "backgroundColor": "#ffffff"
         }
       ],
       "expo-secure-store",
