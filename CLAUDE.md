@@ -75,8 +75,12 @@ font families in a screen.
 
 **Brand assets**: `src/components/ui/BrandLogo.tsx` renders one of three PNGs in
 `assets/images/brand-*.png` (`horizontal` / `vertical` / `icon` variants), sourced from
-`novo_logo/`. These are low-res placeholders (160–400px) — flag to the user before generating
-production app-store icons from them.
+`novo_logo/` (PNG + SVG masters: `Sunset_logo_horizontal.*`, `Sunset_logo_quadrado_*/favicon.*`
+and `logo_vertical_com_nome.*`; the app uses the PNGs, copied 1:1 — horizontal 512×128, vertical and
+icon 512×512). `brand-icon-adaptive.png` (Android adaptive icon foreground) is generated from
+`brand-icon.png`: 1024×1024 canvas, logo at 70%, transparent. 512px is fine for in-app use and the
+Play Store listing, but the App Store icon needs 1024×1024 — flag to the user before generating
+store icons for iOS.
 
 **Unimplemented screens**: stubbed routes render `src/components/ui/ComingSoon.tsx` (wrapped in
 `src/components/ui/RoleGate.tsx` for Moderator/Admin-only routes, e.g. `/moderation`). When
