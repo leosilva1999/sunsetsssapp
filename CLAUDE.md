@@ -35,9 +35,9 @@ npx expo install <pkg>             # add a package with native code (resolves th
                                     # version) — use plain `npm install <pkg>` only for pure-JS deps
 ```
 
-`npm run lint` and `npm test` are scaffolded in `package.json` but not wired up yet: no ESLint
-config exists (`expo lint` will prompt to install `eslint-config-expo` interactively on first
-run) and there are no test files yet.
+`npm run lint` (`expo lint`) runs ESLint 8 with `eslint-config-expo` (`.eslintrc.js`; SDK 52 needs
+the legacy eslintrc format, not flat config) — run it alongside `tsc` before considering a change
+done. `npm test` is scaffolded in `package.json` but there are no test files yet.
 
 ## Architecture
 
