@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { authApi } from "../api/auth";
 import { useAuthStore } from "../stores/authStore";
+import { getGoogleIdToken } from "../lib/googleSignIn";
 import type { LoginPayload, RegisterPayload } from "../types/api";
 
 export function useLogin() {
@@ -15,6 +16,15 @@ export function useRegister() {
   const setSession = useAuthStore((s) => s.setSession);
   return useMutation({
     mutationFn: (payload: RegisterPayload) => authApi.register(payload),
+    onSuccess: setSession,
+  });
+}
+
+// Login e cadastro com Google são o mesmo endpoint (POST /auth/google cria a conta se não existir).
+export function useGoogleLogin() {
+  const setSession = useAuthStore((s) => s.setSession);
+  return useMutation({
+    mutationFn: async () => authApi.loginWithGoogle(await getGoogleIdToken()),
     onSuccess: setSession,
   });
 }

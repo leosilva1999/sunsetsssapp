@@ -9,9 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sunsetsss.app"
     },
     "android": {
+      "package": "com.sunsetsss.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/brand-icon.png",
         "backgroundColor": "#1e1038"
@@ -51,6 +53,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "daff8e8a-e5d3-405f-aa0f-6f12e4f7575f"
+      }
+    },
+    "owner": "leosilva1999"
   }
 }

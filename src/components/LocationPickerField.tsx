@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -6,6 +6,8 @@ import { useTheme } from "../theme/useTheme";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { useLocationsSearch } from "../hooks/useLocationsSearch";
 import { useCreateLocation } from "../hooks/useCreateLocation";
+import { LocationMapPicker } from "./LocationMapPicker";
+import { reverseGeocodeCity, type LatLng } from "../lib/geo";
 import { Button } from "./ui/Button";
 import { TextField } from "./ui/TextField";
 import { getErrorMessage } from "../lib/errorMessage";
@@ -29,6 +31,17 @@ export function LocationPickerField({ value, onChange }: LocationPickerFieldProp
   const [newName, setNewName] = useState("");
   const [newCity, setNewCity] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
+  const [newPoint, setNewPoint] = useState<LatLng | null>(null);
+  // Se o usuário já digitou a cidade à mão, não sobrescrevemos com a do reverse geocode.
+  const cityEdited = useRef(false);
+
+  const handlePointChange = (point: LatLng) => {
+    setNewPoint(point);
+    if (cityEdited.current) return;
+    void reverseGeocodeCity(point).then((city) => {
+      if (city && !cityEdited.current) setNewCity(city);
+    });
+  };
 
   const items = useMemo(() => results.data?.pages.flatMap((page) => page.items).slice(0, 6) ?? [], [results.data]);
 
@@ -47,15 +60,18 @@ export function LocationPickerField({ value, onChange }: LocationPickerFieldProp
   }
 
   const handleCreate = () => {
+    if (!newPoint) return;
     setCreateError(null);
     createLocation.mutate(
-      { name: newName.trim(), city: newCity.trim() },
+      { name: newName.trim(), city: newCity.trim(), ...newPoint },
       {
         onSuccess: (location) => {
           onChange(location);
           setCreatingOpen(false);
           setNewName("");
           setNewCity("");
+          setNewPoint(null);
+          cityEdited.current = false;
         },
         onError: (error) => setCreateError(getErrorMessage(error, "Não foi possível cadastrar o local.")),
       }
@@ -97,10 +113,16 @@ export function LocationPickerField({ value, onChange }: LocationPickerFieldProp
       {creatingOpen ? (
         <View style={[styles.createCard, { borderColor: colors.border }]}>
           <TextField label="Nome do local" value={newName} onChangeText={setNewName} placeholder="Ex.: Praia do Rosa" />
-          <TextField label="Cidade" value={newCity} onChangeText={setNewCity} placeholder="Ex.: Imbituba" />
-          <Text style={[styles.gpsNote, { color: colors.textSecondary, fontFamily: fonts.body }]}>
-            Vamos usar sua localização atual pras coordenadas — fique no local ao cadastrar.
-          </Text>
+          <TextField
+            label="Cidade"
+            value={newCity}
+            onChangeText={(text) => {
+              cityEdited.current = true;
+              setNewCity(text);
+            }}
+            placeholder="Ex.: Imbituba"
+          />
+          <LocationMapPicker value={newPoint} onChange={handlePointChange} />
           {createError ? (
             <Text style={[styles.errorText, { color: colors.danger, fontFamily: fonts.body }]}>{createError}</Text>
           ) : null}
@@ -108,7 +130,7 @@ export function LocationPickerField({ value, onChange }: LocationPickerFieldProp
             label="Cadastrar e usar este local"
             onPress={handleCreate}
             loading={createLocation.isPending}
-            disabled={!newName.trim() || !newCity.trim()}
+            disabled={!newName.trim() || !newCity.trim() || !newPoint}
           />
           <Button label="Cancelar" variant="ghost" onPress={() => setCreatingOpen(false)} />
         </View>
@@ -144,6 +166,5 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 13, paddingVertical: 4 },
   createLink: { fontSize: 13 },
   createCard: { gap: 12, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, padding: 14 },
-  gpsNote: { fontSize: 12, lineHeight: 17 },
   errorText: { fontSize: 12 },
 });

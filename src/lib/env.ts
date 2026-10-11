@@ -19,4 +19,8 @@ export const API_PREFIX = "/api/v1";
 // domínio do app web), pode não funcionar numa WebView; nesse caso, criar uma key própria pro
 // mobile (restrição por app Android/iOS, não por referrer) é o caminho certo. Opcional: sem
 // isso configurado, `LocationMap` simplesmente não renderiza, sem quebrar a tela.
+// Client ID *Web* do Google Cloud — o mesmo `GoogleAuth:ClientId` do backend, que é quem valida o
+// ID token (audience). Não é segredo. Necessário pro login com Google (build nativo).
+export const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? null;
+
 export const GOOGLE_MAPS_EMBED_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_EMBED_KEY ?? null;

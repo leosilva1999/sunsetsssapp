@@ -8,8 +8,9 @@ import { BrandLogo } from "@/src/components/ui/BrandLogo";
 import { TextField } from "@/src/components/ui/TextField";
 import { Button } from "@/src/components/ui/Button";
 import { useTheme } from "@/src/theme/useTheme";
-import { useRegister } from "@/src/hooks/useAuthMutations";
+import { useGoogleLogin, useRegister } from "@/src/hooks/useAuthMutations";
 import { getErrorMessage } from "@/src/lib/errorMessage";
+import { googleErrorMessage } from "@/src/lib/googleSignIn";
 
 export default function RegisterScreen() {
   const { colors, fonts, sunIconColor } = useTheme();
@@ -18,6 +19,7 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const register = useRegister();
+  const googleLogin = useGoogleLogin();
 
   const canSubmit = name.trim() && email.trim() && password.length >= 8 && acceptedTerms;
 
@@ -32,9 +34,14 @@ export default function RegisterScreen() {
   };
 
   const handleGoogle = () => {
-    Alert.alert("Em breve", "Cadastro com Google ainda não está configurado neste app.");
+    googleLogin.mutate(undefined, {
+      onSuccess: () => router.replace("/(tabs)"),
+      onError: (error) => {
+        const message = googleErrorMessage(error);
+        if (message) Alert.alert("Não foi possível entrar com o Google", message);
+      },
+    });
   };
-
   return (
     <GradientBackground>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
@@ -93,7 +100,7 @@ export default function RegisterScreen() {
               <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
             </View>
 
-            <Button label="Continuar com Google" variant="secondary" icon="logo-google" onPress={handleGoogle} />
+            <Button label="Continuar com Google" variant="secondary" icon="logo-google" onPress={handleGoogle} loading={googleLogin.isPending} />
           </View>
 
           <Link

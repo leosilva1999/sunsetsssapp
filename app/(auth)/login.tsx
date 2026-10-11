@@ -7,14 +7,16 @@ import { BrandLogo } from "@/src/components/ui/BrandLogo";
 import { TextField } from "@/src/components/ui/TextField";
 import { Button } from "@/src/components/ui/Button";
 import { useTheme } from "@/src/theme/useTheme";
-import { useLogin } from "@/src/hooks/useAuthMutations";
+import { useGoogleLogin, useLogin } from "@/src/hooks/useAuthMutations";
 import { getErrorMessage } from "@/src/lib/errorMessage";
+import { googleErrorMessage } from "@/src/lib/googleSignIn";
 
 export default function LoginScreen() {
   const { colors, fonts } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const login = useLogin();
+  const googleLogin = useGoogleLogin();
 
   const handleSubmit = () => {
     login.mutate(
@@ -27,11 +29,14 @@ export default function LoginScreen() {
   };
 
   const handleGoogle = () => {
-    // Requer SDK nativo de Google Sign-In configurado (client IDs iOS/Android) — ver seção 4
-    // da spec. Placeholder até termos as credenciais do projeto Google Cloud.
-    Alert.alert("Em breve", "Login com Google ainda não está configurado neste app.");
+    googleLogin.mutate(undefined, {
+      onSuccess: () => router.replace("/(tabs)"),
+      onError: (error) => {
+        const message = googleErrorMessage(error);
+        if (message) Alert.alert("Não foi possível entrar com o Google", message);
+      },
+    });
   };
-
   return (
     <GradientBackground>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
@@ -86,7 +91,7 @@ export default function LoginScreen() {
               <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
             </View>
 
-            <Button label="Continuar com Google" variant="secondary" icon="logo-google" onPress={handleGoogle} />
+            <Button label="Continuar com Google" variant="secondary" icon="logo-google" onPress={handleGoogle} loading={googleLogin.isPending} />
 
             <Pressable onPress={() => router.replace("/(tabs)")} hitSlop={8}>
               <Text style={[styles.guestLink, { color: colors.textOnGradient, fontFamily: fonts.bodyMedium }]}>
