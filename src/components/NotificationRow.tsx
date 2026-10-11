@@ -47,25 +47,36 @@ export function NotificationRow({ notification }: NotificationRowProps) {
     }
   };
 
+  // Nome e avatar de quem gerou a notificação levam ao perfil dele, qualquer que seja o tipo;
+  // o resto da linha segue levando ao alvo (foto, comentário, perfil do seguidor).
+  const openActorProfile = () => {
+    if (isUnread) markRead.mutate(notification.id);
+    router.push(`/profile/${notification.actorUserId}`);
+  };
+
   return (
     <Pressable
       style={[styles.row, isUnread && { backgroundColor: colors.surfaceAlt }]}
       onPress={handlePress}
       disabled={navigating}
     >
-      {notification.actorAvatarUrl ? (
-        <Image source={{ uri: notification.actorAvatarUrl }} style={styles.avatar} />
-      ) : (
-        <View style={[styles.avatarFallback, { backgroundColor: colors.surface }]}>
-          <Ionicons name="person" size={16} color={colors.textSecondary} />
-        </View>
-      )}
+      <Pressable onPress={openActorProfile} hitSlop={4}>
+        {notification.actorAvatarUrl ? (
+          <Image source={{ uri: notification.actorAvatarUrl }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatarFallback, { backgroundColor: colors.surface }]}>
+            <Ionicons name="person" size={16} color={colors.textSecondary} />
+          </View>
+        )}
+      </Pressable>
       <View style={[styles.iconBadge, { backgroundColor: colors.surface }]}>
         <Ionicons name={ICONS[notification.type]} size={11} color={sunIconColor} />
       </View>
       <View style={styles.body}>
         <Text style={[styles.message, { color: colors.textPrimary, fontFamily: fonts.body }]}>
-          <Text style={{ fontFamily: fonts.bodyBold }}>{notification.actorName}</Text>{" "}
+          <Text style={{ fontFamily: fonts.bodyBold }} onPress={openActorProfile}>
+            {notification.actorName}
+          </Text>{" "}
           {getNotificationMessageSuffix(notification.type)}
         </Text>
         <Text style={[styles.date, { color: colors.textSecondary, fontFamily: fonts.mono }]}>
