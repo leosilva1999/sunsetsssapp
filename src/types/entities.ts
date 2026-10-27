@@ -29,6 +29,9 @@ export interface AuthUser {
   bio: string | null;
   role: UserRole;
   createdAt: string;
+  /** false = conta criada pelo login com Google (sem senha). Ausente em sessões salvas antes do
+   *  campo existir — trate só `=== false` como "sem senha". */
+  hasPassword?: boolean;
 }
 
 export interface Location {

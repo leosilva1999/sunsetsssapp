@@ -1,4 +1,5 @@
 import { apiFetch } from "./client";
+import { useAuthStore } from "../stores/authStore";
 import type { AuthUser, CursorPage, Photo, User } from "../types/entities";
 import type { AvatarUploadUrlResponse } from "../types/api";
 
@@ -32,6 +33,16 @@ export const usersApi = {
   // valor = substitui. O caller decide o que entra no objeto, não essa função.
   updateMe: (payload: { name?: string; avatarUrl?: string | null; bio?: string | null }) =>
     apiFetch<AuthUser>("/users/me", { method: "PATCH", body: payload }),
+
+  // `PUT /users/me/password` → 204. O servidor revoga todos os refresh tokens do usuário EXCETO o
+  // enviado em `refreshToken` — sem ele (ou com um inativo) derruba até esta sessão. Por isso o
+  // corpo é uma função: lê o refresh token vigente a cada tentativa (um 401 → refresh+retry gira
+  // o token, e o antigo seria tratado como inativo).
+  changePassword: (payload: { currentPassword: string; newPassword: string }) =>
+    apiFetch<void>("/users/me/password", {
+      method: "PUT",
+      body: () => ({ ...payload, refreshToken: useAuthStore.getState().refreshToken ?? undefined }),
+    }),
 
   // Mesmo padrão de upload em 2 passos das fotos (seção 5.8) — devolve `avatarUrl`, não
   // `imageUrl`. `avatarUrl` só é aceito por `updateMe` se vier exatamente desta resposta (tem

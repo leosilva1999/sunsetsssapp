@@ -123,6 +123,10 @@ the one list endpoint that is **not** paginated (plain array, `?limit=`).
   PUT and the later image GET. Fix lives in the backend repo: `appsettings.Development.local.json`
   (gitignored, loaded by `Program.cs`, see `appsettings.Development.local.json.example`) overrides
   both to the current LAN IP. Needs a full rebuild (not just a process restart) the first time
-  it's created, since it's a new content file MSBuild has to pick up and copy to `bin/`. Existing
-  photos uploaded before the fix keep their broken `localhost` URL in the DB permanently — only
-  new uploads after the fix pick up the corrected URL.
+  it's created, since it's a new content file MSBuild has to pick up and copy to `bin/`. The DB
+  stores the full image URL with whatever host the backend had at upload time, so those URLs go
+  stale every time the PC's IP changes. On the app side, `src/lib/devStorageUrls.ts` (called from
+  `apiFetch`) rewrites any `http://<ip|localhost>:4566/...` URL in API responses to the host of
+  `EXPO_PUBLIC_API_BASE_URL` — only when that host is localhost/private-network, so a real API
+  and S3/CDN URLs are untouched. That recovers old files still present in the bucket, but not ones
+  lost when LocalStack lost its state (the bucket is recreated empty; `404` on the object).

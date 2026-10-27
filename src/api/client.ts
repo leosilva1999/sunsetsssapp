@@ -1,5 +1,7 @@
 import { API_BASE_URL, API_PREFIX } from "../lib/env";
+import { rewriteDevStorageUrls } from "../lib/devStorageUrls";
 import { useAuthStore } from "../stores/authStore";
+import type { AuthUser } from "../types/entities";
 
 export class ApiError extends Error {
   status: number;
@@ -11,10 +13,22 @@ export class ApiError extends Error {
     this.status = status;
     this.payload = payload;
   }
+
+  /** Id opaco da requisição (docs/API.md, "Error format") — útil pra achar o erro nos logs da API. */
+  get requestId(): string | undefined {
+    const id = (this.payload as { requestId?: unknown } | null | undefined)?.requestId;
+    return typeof id === "string" ? id : undefined;
+  }
 }
 
 interface RequestOptions {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+  /**
+   * Objeto, ou função que o monta a CADA tentativa. A função existe pro caso em que o corpo
+   * carrega o refresh token (ex.: `PUT /users/me/password`): se um 401 dispara refresh+retry, o
+   * token gira, e repetir o corpo antigo faria o servidor tratá-lo como inativo e derrubar todas
+   * as sessões.
+   */
   body?: unknown;
   /**
    * false pra endpoints onde um 401 não deve disparar o fluxo de refresh+retry: os sem 🔒 em
@@ -73,9 +87,12 @@ async function refreshAccessToken(): Promise<string> {
     }
 
     // Mesmo shape de AuthResponse (accessToken/refreshToken/expiresAt/user) — docs/API.md,
-    // seção Auth. Só os tokens importam aqui; `setTokens` preserva o `user` já em memória.
-    const data = (await parseBody(res)) as { accessToken: string; refreshToken: string };
-    useAuthStore.getState().setTokens(data);
+    // seção Auth. Atualiza também o `user` (papel, avatar, `hasPassword`...) pra não ficar
+    // defasado em relação ao servidor.
+    const data = (await parseBody(res)) as { accessToken: string; refreshToken: string; user?: AuthUser };
+    const store = useAuthStore.getState();
+    store.setTokens(data);
+    if (data.user) store.setUser(data.user);
     return data.accessToken;
   })();
 
@@ -87,7 +104,8 @@ async function refreshAccessToken(): Promise<string> {
 }
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, auth = true, signal, _isRetry = false } = options;
+  const { method = "GET", body: rawBody, auth = true, signal, _isRetry = false } = options;
+  const body = typeof rawBody === "function" ? (rawBody as () => unknown)() : rawBody;
 
   const headers: Record<string, string> = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
@@ -102,7 +120,7 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     signal,
   });
 
-  if (res.ok) return (await parseBody(res)) as T;
+  if (res.ok) return rewriteDevStorageUrls(await parseBody(res)) as T;
 
   const payload = await parseBody(res);
 

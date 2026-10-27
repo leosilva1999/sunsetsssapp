@@ -40,6 +40,11 @@ export function AccountMenu() {
     router.push("/moderation");
   };
 
+  const handleChangePassword = () => {
+    close();
+    router.push("/profile/password");
+  };
+
   const handleLogout = () => {
     close();
     Alert.alert("Sair da conta", "Tem certeza que quer sair?", [
@@ -73,6 +78,14 @@ export function AccountMenu() {
                 <Ionicons name="shield-checkmark-outline" size={18} color={colors.textPrimary} />
                 <Text style={[styles.menuLabel, { color: colors.textPrimary, fontFamily: fonts.bodyMedium }]}>
                   Moderação
+                </Text>
+              </Pressable>
+            )}
+            {user.hasPassword !== false && (
+              <Pressable style={styles.menuItem} onPress={handleChangePassword}>
+                <Ionicons name="key-outline" size={18} color={colors.textPrimary} />
+                <Text style={[styles.menuLabel, { color: colors.textPrimary, fontFamily: fonts.bodyMedium }]}>
+                  Alterar senha
                 </Text>
               </Pressable>
             )}
