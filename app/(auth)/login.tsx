@@ -9,6 +9,7 @@ import { Button } from "@/src/components/ui/Button";
 import { useTheme } from "@/src/theme/useTheme";
 import { useGoogleLogin, useLogin } from "@/src/hooks/useAuthMutations";
 import { getErrorMessage } from "@/src/lib/errorMessage";
+import { getBanMessage } from "@/src/lib/authErrors";
 import { googleErrorMessage } from "@/src/lib/googleSignIn";
 
 export default function LoginScreen() {
@@ -23,7 +24,11 @@ export default function LoginScreen() {
       { email: email.trim(), password },
       {
         onSuccess: () => router.replace("/(tabs)"),
-        onError: (error) => Alert.alert("Não foi possível entrar", getErrorMessage(error, "Tente de novo.")),
+        onError: (error) => {
+          const ban = getBanMessage(error);
+          if (ban) Alert.alert("Conta suspensa", ban);
+          else Alert.alert("Não foi possível entrar", getErrorMessage(error, "Tente de novo."));
+        },
       }
     );
   };

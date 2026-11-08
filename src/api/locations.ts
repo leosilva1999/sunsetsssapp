@@ -1,5 +1,5 @@
 import { apiFetch } from "./client";
-import type { CursorPage, Location, Photo, Rating } from "../types/entities";
+import type { CursorPage, Location, LocationCategory, Photo, Rating } from "../types/entities";
 import type { LocationRankingPeriod, SunsetInfo } from "../types/api";
 
 // Ver docs/API.md, seção Locations. Busca é FULLTEXT por prefixo de palavra com 3+ caracteres
@@ -28,7 +28,17 @@ export const locationsApi = {
   get: (id: string) => apiFetch<Location>(`/locations/${id}`, { auth: false }),
 
   // Seção 5.8 — cadastrar local novo direto do fluxo de postar foto, quando a busca não acha.
-  create: (payload: { name: string; latitude: number; longitude: number; city: string }) =>
+  create: (payload: {
+    name: string;
+    latitude: number;
+    longitude: number;
+    /** Preferir `cityId` (do catálogo); `city` (texto livre) segue aceito. Um dos dois é obrigatório. */
+    cityId?: string;
+    city?: string;
+    description?: string;
+    category?: LocationCategory;
+    confirmDistinct?: boolean;
+  }) =>
     apiFetch<Location>("/locations", { method: "POST", body: payload }),
 
   // likedByCurrentUser vem sempre false aqui, independente do token — não resolvido pra esta

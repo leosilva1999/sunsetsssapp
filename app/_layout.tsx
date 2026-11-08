@@ -12,6 +12,7 @@ import { useTheme } from "@/src/theme/useTheme";
 import { queryClient } from "@/src/lib/queryClient";
 import { useAuthStore } from "@/src/stores/authStore";
 import { getStoredSession } from "@/src/lib/secureStorage";
+import { LegalAcceptanceGate } from "@/src/components/LegalAcceptanceGate";
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -46,6 +47,7 @@ export default function RootLayout() {
         <View style={[styles.root, { backgroundColor: colors.background }]}>
           <StatusBar style={scheme === "dark" ? "light" : "dark"} />
           <Stack screenOptions={{ headerShown: false }} />
+          <LegalAcceptanceGate />
 
         </View>
       </QueryClientProvider>

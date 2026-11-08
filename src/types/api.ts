@@ -1,4 +1,4 @@
-import type { AuthUser } from "./entities";
+import type { AuthUser, LegalAcceptance } from "./entities";
 
 // DTOs de request/response que não mapeiam 1:1 pras entidades — conferidos contra
 // `docs/API.md` do repositório `sunsetapi` (seção Auth).
@@ -7,9 +7,16 @@ export interface AuthResponse {
   refreshToken: string;
   expiresAt: string;
   user: AuthUser;
+  legalAcceptance?: LegalAcceptance;
 }
 
-export interface RegisterPayload {
+/** Versões dos Termos/Política que o usuário viu e aceitou (opcionais — omitir = conta "pendente"). */
+export interface LegalVersions {
+  termsVersion: number;
+  privacyVersion: number;
+}
+
+export interface RegisterPayload extends Partial<LegalVersions> {
   name: string;
   email: string;
   password: string;

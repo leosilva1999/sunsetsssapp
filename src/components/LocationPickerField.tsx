@@ -1,16 +1,11 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "../theme/useTheme";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { useLocationsSearch } from "../hooks/useLocationsSearch";
-import { useCreateLocation } from "../hooks/useCreateLocation";
-import { LocationMapPicker } from "./LocationMapPicker";
-import { reverseGeocodeCity, type LatLng } from "../lib/geo";
-import { Button } from "./ui/Button";
-import { TextField } from "./ui/TextField";
-import { getErrorMessage } from "../lib/errorMessage";
+import { NewLocationForm } from "./NewLocationForm";
 import type { Location } from "../types/entities";
 
 interface LocationPickerFieldProps {
@@ -25,23 +20,7 @@ export function LocationPickerField({ value, onChange }: LocationPickerFieldProp
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search.trim(), 400);
   const results = useLocationsSearch(debouncedSearch);
-  const createLocation = useCreateLocation();
-
   const [creatingOpen, setCreatingOpen] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newCity, setNewCity] = useState("");
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [newPoint, setNewPoint] = useState<LatLng | null>(null);
-  // Se o usuário já digitou a cidade à mão, não sobrescrevemos com a do reverse geocode.
-  const cityEdited = useRef(false);
-
-  const handlePointChange = (point: LatLng) => {
-    setNewPoint(point);
-    if (cityEdited.current) return;
-    void reverseGeocodeCity(point).then((city) => {
-      if (city && !cityEdited.current) setNewCity(city);
-    });
-  };
 
   const items = useMemo(() => results.data?.pages.flatMap((page) => page.items).slice(0, 6) ?? [], [results.data]);
 
@@ -58,25 +37,6 @@ export function LocationPickerField({ value, onChange }: LocationPickerFieldProp
       </View>
     );
   }
-
-  const handleCreate = () => {
-    if (!newPoint) return;
-    setCreateError(null);
-    createLocation.mutate(
-      { name: newName.trim(), city: newCity.trim(), ...newPoint },
-      {
-        onSuccess: (location) => {
-          onChange(location);
-          setCreatingOpen(false);
-          setNewName("");
-          setNewCity("");
-          setNewPoint(null);
-          cityEdited.current = false;
-        },
-        onError: (error) => setCreateError(getErrorMessage(error, "Não foi possível cadastrar o local.")),
-      }
-    );
-  };
 
   return (
     <View style={styles.wrapper}>
@@ -111,29 +71,13 @@ export function LocationPickerField({ value, onChange }: LocationPickerFieldProp
       )}
 
       {creatingOpen ? (
-        <View style={[styles.createCard, { borderColor: colors.border }]}>
-          <TextField label="Nome do local" value={newName} onChangeText={setNewName} placeholder="Ex.: Praia do Rosa" />
-          <TextField
-            label="Cidade"
-            value={newCity}
-            onChangeText={(text) => {
-              cityEdited.current = true;
-              setNewCity(text);
-            }}
-            placeholder="Ex.: Imbituba"
-          />
-          <LocationMapPicker value={newPoint} onChange={handlePointChange} />
-          {createError ? (
-            <Text style={[styles.errorText, { color: colors.danger, fontFamily: fonts.body }]}>{createError}</Text>
-          ) : null}
-          <Button
-            label="Cadastrar e usar este local"
-            onPress={handleCreate}
-            loading={createLocation.isPending}
-            disabled={!newName.trim() || !newCity.trim() || !newPoint}
-          />
-          <Button label="Cancelar" variant="ghost" onPress={() => setCreatingOpen(false)} />
-        </View>
+        <NewLocationForm
+          onCreated={(location) => {
+            onChange(location);
+            setCreatingOpen(false);
+          }}
+          onCancel={() => setCreatingOpen(false)}
+        />
       ) : (
         <Pressable onPress={() => setCreatingOpen(true)} hitSlop={6}>
           <Text style={[styles.createLink, { color: colors.accent, fontFamily: fonts.bodyMedium }]}>
@@ -165,6 +109,4 @@ const styles = StyleSheet.create({
   resultText: { fontSize: 14 },
   emptyText: { fontSize: 13, paddingVertical: 4 },
   createLink: { fontSize: 13 },
-  createCard: { gap: 12, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, padding: 14 },
-  errorText: { fontSize: 12 },
 });

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { AuthUser } from "../types/entities";
+import type { AuthUser, LegalAcceptance } from "../types/entities";
 import {
   clearStoredSession,
   setStoredSession,
@@ -14,6 +14,9 @@ interface AuthState {
   user: AuthUser | null;
   accessToken: string | null;
   refreshToken: string | null;
+  /** Estado de aceite dos Termos/Política (não persistido — vem do servidor a cada login/refresh). */
+  legalAcceptance: LegalAcceptance | null;
+  setLegalAcceptance: (acceptance: LegalAcceptance | null) => void;
   /** Chamado uma vez na raiz do app após ler a sessão persistida (ou não encontrar nenhuma). */
   hydrate: (session: StoredSession | null) => void;
   /** Login, cadastro ou login via Google bem-sucedidos. */
@@ -30,6 +33,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   accessToken: null,
   refreshToken: null,
+  legalAcceptance: null,
+
+  setLegalAcceptance: (legalAcceptance) => set({ legalAcceptance }),
 
   hydrate: (session) => {
     if (session) {
@@ -58,7 +64,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signOut: () => {
-    set({ user: null, accessToken: null, refreshToken: null, status: "signedOut" });
+    set({ user: null, accessToken: null, refreshToken: null, legalAcceptance: null, status: "signedOut" });
     void clearStoredSession();
   },
 }));

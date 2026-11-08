@@ -1,5 +1,5 @@
 import { apiFetch } from "./client";
-import type { AuthResponse, LoginPayload, RegisterPayload } from "../types/api";
+import type { AuthResponse, LegalVersions, LoginPayload, RegisterPayload } from "../types/api";
 
 // Ver seção 4 e 8 de `web_app_docs/mobile-app-spec.md`.
 export const authApi = {
@@ -10,8 +10,10 @@ export const authApi = {
     apiFetch<AuthResponse>("/auth/login", { method: "POST", body: payload, auth: false }),
 
   // `idToken` vem do SDK nativo de Google Sign-In (ver seção 4 — substitui o GIS web).
-  loginWithGoogle: (idToken: string) =>
-    apiFetch<AuthResponse>("/auth/google", { method: "POST", body: { idToken }, auth: false }),
+  // `versions` só vai se a pessoa viu e aceitou os textos antes (tela de cadastro); sem eles a
+  // conta nova fica "pendente" e o app mostra a tela de aceite depois do login.
+  loginWithGoogle: (idToken: string, versions?: Partial<LegalVersions>) =>
+    apiFetch<AuthResponse>("/auth/google", { method: "POST", body: { idToken, ...versions }, auth: false }),
 
   // Sempre 204, independente de o e-mail existir — não diferenciar na UI (seção 5.1).
   forgotPassword: (email: string) =>

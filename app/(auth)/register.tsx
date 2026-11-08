@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Link, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,6 +11,8 @@ import { Button } from "@/src/components/ui/Button";
 import { useTheme } from "@/src/theme/useTheme";
 import { useGoogleLogin, useRegister } from "@/src/hooks/useAuthMutations";
 import { getErrorMessage } from "@/src/lib/errorMessage";
+import { getFieldError } from "@/src/lib/fieldErrors";
+import { legalApi } from "@/src/api/legal";
 import { googleErrorMessage } from "@/src/lib/googleSignIn";
 
 export default function RegisterScreen() {
@@ -21,20 +24,40 @@ export default function RegisterScreen() {
   const register = useRegister();
   const googleLogin = useGoogleLogin();
 
+  // Versões vigentes dos textos que a pessoa está aceitando (docs/API.md, "Terms and Privacy
+  // acceptance"). Se não carregarem, o cadastro segue sem elas — a conta fica "pendente" e o app
+  // mostra a tela de aceite depois do login.
+  const termsDoc = useQuery({ queryKey: ["legal", "terms"], queryFn: legalApi.getTerms });
+  const privacyDoc = useQuery({ queryKey: ["legal", "privacy"], queryFn: legalApi.getPrivacy });
+  const acceptedVersions =
+    acceptedTerms && termsDoc.data && privacyDoc.data
+      ? { termsVersion: termsDoc.data.version, privacyVersion: privacyDoc.data.version }
+      : undefined;
+
   const canSubmit = name.trim() && email.trim() && password.length >= 8 && acceptedTerms;
 
   const handleSubmit = () => {
     register.mutate(
-      { name: name.trim(), email: email.trim(), password },
+      { name: name.trim(), email: email.trim(), password, ...acceptedVersions },
       {
         onSuccess: () => router.replace("/(tabs)"),
-        onError: (error) => Alert.alert("Não foi possível criar a conta", getErrorMessage(error, "Tente de novo.")),
+        onError: (error) => {
+          // 400 em TermsVersion/PrivacyVersion = um dos textos foi republicado: recarrega e pede o aceite de novo.
+          if (getFieldError(error, "TermsVersion") || getFieldError(error, "PrivacyVersion")) {
+            setAcceptedTerms(false);
+            void termsDoc.refetch();
+            void privacyDoc.refetch();
+            Alert.alert("Textos atualizados", "Os Termos ou a Política mudaram. Leia a nova versão e aceite de novo.");
+            return;
+          }
+          Alert.alert("Não foi possível criar a conta", getErrorMessage(error, "Tente de novo."));
+        },
       }
     );
   };
 
   const handleGoogle = () => {
-    googleLogin.mutate(undefined, {
+    googleLogin.mutate(acceptedVersions, {
       onSuccess: () => router.replace("/(tabs)"),
       onError: (error) => {
         const message = googleErrorMessage(error);

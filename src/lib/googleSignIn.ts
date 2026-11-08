@@ -1,5 +1,6 @@
 import { ApiError } from "../api/client";
 import { getErrorMessage } from "./errorMessage";
+import { getBanMessage } from "./authErrors";
 import { GOOGLE_WEB_CLIENT_ID } from "./env";
 
 // Google Sign-In nativo: devolve o ID token que o backend (POST /auth/google) valida contra o
@@ -46,7 +47,7 @@ export async function getGoogleIdToken(): Promise<string> {
 
 // Mensagem pra exibir num Alert, ou `null` quando o usuário só cancelou o seletor de contas.
 export function googleErrorMessage(error: unknown): string | null {
-  if (error instanceof ApiError) return getErrorMessage(error, "Tente de novo.");
+  if (error instanceof ApiError) return getBanMessage(error) ?? getErrorMessage(error, "Tente de novo.");
   if (!(error instanceof Error)) return "Tente de novo.";
   return error.message === GOOGLE_SIGN_IN_CANCELLED ? null : error.message;
 }

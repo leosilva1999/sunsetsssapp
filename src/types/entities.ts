@@ -34,6 +34,9 @@ export interface AuthUser {
   hasPassword?: boolean;
 }
 
+// Valores literais da API (docs/API.md, "Locations"); a UI mapeia pra rótulo em pt-BR.
+export type LocationCategory = "Beach" | "Viewpoint" | "Mountain" | "Lake" | "River" | "Urban" | "Other";
+
 export interface Location {
   id: string;
   name: string;
@@ -42,6 +45,21 @@ export interface Location {
   city: string;
   avgRating: number;
   createdAt: string;
+  // Campos adicionados pela API depois (docs/API.md, "LocationResponse: city and counts") — todos
+  // opcionais aqui porque nem toda tela/resposta antiga os carrega.
+  slug?: string;
+  /** Município do catálogo ao qual o local está ligado (null enquanto não ligado). */
+  citySlug?: string | null;
+  cityName?: string | null;
+  state?: string | null;
+  /** Localidade do catálogo (ex.: "Praia do Rosa"), quando escolhida. */
+  localityName?: string | null;
+  localitySlug?: string | null;
+  ratingsCount?: number;
+  photosCount?: number;
+  coverImageUrl?: string | null;
+  description?: string | null;
+  category?: LocationCategory | null;
   // Só preenchido na busca "perto de mim" (GET /locations?lat=&lng=); null fora dela.
   distanceKm: number | null;
 }
@@ -142,6 +160,23 @@ export interface AppNotification {
 
 export type LegalDocumentType = "TermsOfService" | "PrivacyPolicy";
 
+// Aceite dos Termos/Política por usuário (docs/API.md, "Terms and Privacy acceptance"). Vem em toda
+// resposta de register/login/google/refresh e em `GET /users/me/legal-acceptances`. `pending` =
+// existe uma versão publicada que o usuário ainda não aceitou. `currentVersion: null` = documento
+// nunca publicado (nunca fica pendente).
+export interface LegalDocumentAcceptance {
+  currentVersion: number | null;
+  acceptedVersion: number | null;
+  acceptedAt: string | null;
+  pending: boolean;
+}
+
+export interface LegalAcceptance {
+  terms: LegalDocumentAcceptance;
+  privacy: LegalDocumentAcceptance;
+  pending: boolean;
+}
+
 export interface LegalDocument {
   id: string;
   documentType: LegalDocumentType;
@@ -156,4 +191,49 @@ export interface CursorPage<T> {
   items: T[];
   nextCursor: string | null;
   hasMore: boolean;
+}
+
+// Catálogo de municípios/localidades (docs/API.md, "Cities"). Fonte de verdade de "que cidade é
+// essa?" — o cadastro de local escolhe daqui em vez de texto livre.
+export interface CityParent {
+  id: string;
+  name: string;
+  state: string;
+  slug: string;
+}
+
+export interface City {
+  id: string;
+  kind: "Municipality" | "Locality";
+  name: string;
+  country: string;
+  state: string;
+  slug: string;
+  parent: CityParent | null;
+  timeZoneId: string;
+  population: number;
+  latitude: number;
+  longitude: number;
+  locationsCount: number;
+  photosCount: number;
+  ratingsCount: number;
+  avgRating: number | null;
+  coverImageUrl: string | null;
+}
+
+/** Item de `GET /geo/cities` — lugar do catálogo mais próximo de um ponto do mapa. */
+export interface NearestPlace {
+  id: string;
+  kind: "Municipality" | "Locality";
+  name: string;
+  state: string;
+  slug: string;
+  distanceKm: number;
+  parent: CityParent | null;
+}
+
+export interface NearestCitiesResponse {
+  items: NearestPlace[];
+  /** Só vem quando se envia `cityId`: `farAway` = pino a mais de 150 km do centro (aviso, nunca bloqueio). */
+  chosenCity?: { id: string; name: string; state: string; distanceKm: number; farAway: boolean } | null;
 }

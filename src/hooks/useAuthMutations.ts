@@ -2,30 +2,43 @@ import { useMutation } from "@tanstack/react-query";
 import { authApi } from "../api/auth";
 import { useAuthStore } from "../stores/authStore";
 import { getGoogleIdToken } from "../lib/googleSignIn";
-import type { LoginPayload, RegisterPayload } from "../types/api";
+import type { AuthResponse, LegalVersions, LoginPayload, RegisterPayload } from "../types/api";
+
+// Login, cadastro e Google devolvem a sessão + `legalAcceptance`: guardamos os dois (o segundo
+// alimenta a tela de aceite dos Termos quando `pending`).
+function useStartSession() {
+  const setSession = useAuthStore((s) => s.setSession);
+  const setLegalAcceptance = useAuthStore((s) => s.setLegalAcceptance);
+  return (response: AuthResponse) => {
+    setSession(response);
+    setLegalAcceptance(response.legalAcceptance ?? null);
+  };
+}
 
 export function useLogin() {
-  const setSession = useAuthStore((s) => s.setSession);
+  const startSession = useStartSession();
   return useMutation({
     mutationFn: (payload: LoginPayload) => authApi.login(payload),
-    onSuccess: setSession,
+    onSuccess: startSession,
   });
 }
 
 export function useRegister() {
-  const setSession = useAuthStore((s) => s.setSession);
+  const startSession = useStartSession();
   return useMutation({
     mutationFn: (payload: RegisterPayload) => authApi.register(payload),
-    onSuccess: setSession,
+    onSuccess: startSession,
   });
 }
 
 // Login e cadastro com Google são o mesmo endpoint (POST /auth/google cria a conta se não existir).
 export function useGoogleLogin() {
-  const setSession = useAuthStore((s) => s.setSession);
+  const startSession = useStartSession();
   return useMutation({
-    mutationFn: async () => authApi.loginWithGoogle(await getGoogleIdToken()),
-    onSuccess: setSession,
+    // `versions` só quando a pessoa já viu e aceitou os textos (tela de cadastro com a caixinha).
+    mutationFn: async (versions?: Partial<LegalVersions>) =>
+      authApi.loginWithGoogle(await getGoogleIdToken(), versions),
+    onSuccess: startSession,
   });
 }
 

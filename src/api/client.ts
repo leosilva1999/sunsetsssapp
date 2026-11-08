@@ -1,7 +1,7 @@
 import { API_BASE_URL, API_PREFIX } from "../lib/env";
 import { rewriteDevStorageUrls } from "../lib/devStorageUrls";
 import { useAuthStore } from "../stores/authStore";
-import type { AuthUser } from "../types/entities";
+import type { AuthUser, LegalAcceptance } from "../types/entities";
 
 export class ApiError extends Error {
   status: number;
@@ -89,10 +89,16 @@ async function refreshAccessToken(): Promise<string> {
     // Mesmo shape de AuthResponse (accessToken/refreshToken/expiresAt/user) — docs/API.md,
     // seção Auth. Atualiza também o `user` (papel, avatar, `hasPassword`...) pra não ficar
     // defasado em relação ao servidor.
-    const data = (await parseBody(res)) as { accessToken: string; refreshToken: string; user?: AuthUser };
+    const data = (await parseBody(res)) as {
+      accessToken: string;
+      refreshToken: string;
+      user?: AuthUser;
+      legalAcceptance?: LegalAcceptance;
+    };
     const store = useAuthStore.getState();
     store.setTokens(data);
     if (data.user) store.setUser(data.user);
+    if (data.legalAcceptance) store.setLegalAcceptance(data.legalAcceptance);
     return data.accessToken;
   })();
 

@@ -6,8 +6,7 @@ import { locationsApi } from "../api/locations";
 export function useCreateLocation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { name: string; city: string; latitude: number; longitude: number }) =>
-      locationsApi.create(payload),
+    mutationFn: (payload: Parameters<typeof locationsApi.create>[0]) => locationsApi.create(payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["locations"] });
     },
