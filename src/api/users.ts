@@ -34,6 +34,12 @@ export const usersApi = {
   updateMe: (payload: { name?: string; avatarUrl?: string | null; bio?: string | null }) =>
     apiFetch<AuthUser>("/users/me", { method: "PATCH", body: payload }),
 
+  // `DELETE /users/me` → 204 (LGPD, direito ao apagamento). ANONIMIZA, não apaga em cascata: nome
+  // vira "Usuário excluído", e-mail/avatar/bio são limpos e a senha deixa de funcionar; fotos,
+  // comentários e avaliações ficam, assinados por "Usuário excluído". Revoga todos os refresh
+  // tokens. Não pede senha nem tem `{id}` — é sempre a conta de quem chama.
+  deleteMe: () => apiFetch<void>("/users/me", { method: "DELETE" }),
+
   // `PUT /users/me/password` → 204. O servidor revoga todos os refresh tokens do usuário EXCETO o
   // enviado em `refreshToken` — sem ele (ou com um inativo) derruba até esta sessão. Por isso o
   // corpo é uma função: lê o refresh token vigente a cada tentativa (um 401 → refresh+retry gira

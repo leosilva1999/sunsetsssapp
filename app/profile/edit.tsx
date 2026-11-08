@@ -7,6 +7,7 @@ import { Stack, router } from "expo-router";
 import { Screen } from "@/src/components/ui/Screen";
 import { Button } from "@/src/components/ui/Button";
 import { TextField } from "@/src/components/ui/TextField";
+import { DeleteAccountSection } from "@/src/components/DeleteAccountSection";
 import { useTheme } from "@/src/theme/useTheme";
 import { useAuthStore } from "@/src/stores/authStore";
 import { useSaveProfile } from "@/src/hooks/useEditProfile";
@@ -111,6 +112,8 @@ export default function EditProfileScreen() {
         </View>
 
         <Button label="Salvar" onPress={handleSave} loading={saveProfile.isPending} disabled={!name.trim()} />
+
+        <DeleteAccountSection />
       </ScrollView>
     </Screen>
   );
