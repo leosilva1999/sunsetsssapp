@@ -1,17 +1,22 @@
 import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
 
 import { Button } from "./ui/Button";
 import { PhotoCard } from "./PhotoCard";
 import { AvatarMenu } from "./AvatarMenu";
+import { ReportModal } from "./ReportModal";
+import { moderationApi } from "../api/moderation";
+import { ApiError } from "../api/client";
+import { getErrorMessage } from "../lib/errorMessage";
 import { shareLink, siteLinks } from "../lib/shareLinks";
 import { useTheme } from "../theme/useTheme";
 import { useAuthStore } from "../stores/authStore";
 import { useChangeAvatar } from "../hooks/useChangeAvatar";
 import { useToggleFollow, useUserPhotos, useUserProfile } from "../hooks/useUserProfile";
-import type { Photo } from "../types/entities";
+import type { Photo, ReportReason } from "../types/entities";
 
 function formatJoinDate(iso: string) {
   return new Date(iso).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
@@ -35,6 +40,34 @@ export function ProfileContent({ userId }: ProfileContentProps) {
   const toggleFollow = useToggleFollow(userId);
 
   const changeAvatar = useChangeAvatar();
+
+  // Denunciar usuário (docs/API.md, `POST /users/{id}/reports`): uma denúncia por alvo (409 se
+  // repetir); usuário já excluído/anonimizado é 404.
+  const [reportOpen, setReportOpen] = useState(false);
+  const reportUser = useMutation({
+    mutationFn: (payload: { reason: ReportReason; details?: string }) => moderationApi.reportUser(userId, payload),
+    onSuccess: () => {
+      setReportOpen(false);
+      Alert.alert("Denúncia enviada", "Obrigado — nossa equipe vai revisar.");
+    },
+    onError: (error) => {
+      setReportOpen(false);
+      if (error instanceof ApiError && error.status === 409) {
+        Alert.alert("Você já denunciou este usuário", "Nossa equipe já vai analisar.");
+      } else if (error instanceof ApiError && error.status === 404) {
+        Alert.alert("Usuário indisponível", "Este perfil não existe mais.");
+      } else {
+        Alert.alert("Não foi possível denunciar", getErrorMessage(error, "Tente de novo."));
+      }
+    },
+  });
+  const handleReportUser = () => {
+    if (!isSignedIn) {
+      router.push("/(auth)/login");
+      return;
+    }
+    setReportOpen(true);
+  };
 
   const photoItems = useMemo<Photo[]>(() => photos.data?.pages.flatMap((page) => page.items) ?? [], [photos.data]);
 
@@ -71,105 +104,121 @@ export function ProfileContent({ userId }: ProfileContentProps) {
   }
 
   return (
-    <FlatList
-      data={photoItems}
-      keyExtractor={(item) => item.id}
-      numColumns={2}
-      columnWrapperStyle={styles.photoRow}
-      contentContainerStyle={styles.content}
-      renderItem={({ item }) => <PhotoCard photo={item} queryKey={["users", userId, "photos"]} />}
-      onRefresh={handleRefresh}
-      refreshing={refreshing}
-      onEndReachedThreshold={0.4}
-      onEndReached={() => {
-        if (photos.hasNextPage && !photos.isFetchingNextPage) photos.fetchNextPage();
-      }}
-      ListHeaderComponent={
-        <View style={styles.header}>
-          {isOwnProfile ? (
-            <AvatarMenu
-              avatarUrl={profile.data.avatarUrl ?? null}
-              isUploading={changeAvatar.isUploading}
-              onTakePhoto={changeAvatar.takePhoto}
-              onPickFromLibrary={changeAvatar.pickFromLibrary}
-            />
-          ) : profile.data.avatarUrl ? (
-            <Image source={{ uri: profile.data.avatarUrl }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatarFallback, { backgroundColor: colors.surfaceAlt }]}>
-              <Ionicons name="person" size={36} color={colors.textSecondary} />
-            </View>
-          )}
-          <Text style={[styles.name, { color: colors.textPrimary, fontFamily: fonts.display }]}>
-            {profile.data.name}
-          </Text>
-          <Text style={[styles.joinDate, { color: colors.textSecondary, fontFamily: fonts.mono }]}>
-            Entrou em {formatJoinDate(profile.data.createdAt)}
-          </Text>
-          <Pressable
-            onPress={() => void shareLink(`${profile.data!.name} no Sunsetsss`, siteLinks.profile(userId))}
-            style={styles.shareRow}
-            hitSlop={8}
-          >
-            <Ionicons name="share-outline" size={15} color={colors.accent} />
-            <Text style={[styles.shareLabel, { color: colors.accent, fontFamily: fonts.bodyMedium }]}>Compartilhar perfil</Text>
-          </Pressable>
-          {profile.data.bio ? (
-            <Text style={[styles.bio, { color: colors.textPrimary, fontFamily: fonts.body }]}>{profile.data.bio}</Text>
-          ) : null}
+    <>
+      <FlatList
+        data={photoItems}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.photoRow}
+        contentContainerStyle={styles.content}
+        renderItem={({ item }) => <PhotoCard photo={item} queryKey={["users", userId, "photos"]} />}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+        onEndReachedThreshold={0.4}
+        onEndReached={() => {
+          if (photos.hasNextPage && !photos.isFetchingNextPage) photos.fetchNextPage();
+        }}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            {isOwnProfile ? (
+              <AvatarMenu
+                avatarUrl={profile.data.avatarUrl ?? null}
+                isUploading={changeAvatar.isUploading}
+                onTakePhoto={changeAvatar.takePhoto}
+                onPickFromLibrary={changeAvatar.pickFromLibrary}
+              />
+            ) : profile.data.avatarUrl ? (
+              <Image source={{ uri: profile.data.avatarUrl }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatarFallback, { backgroundColor: colors.surfaceAlt }]}>
+                <Ionicons name="person" size={36} color={colors.textSecondary} />
+              </View>
+            )}
+            <Text style={[styles.name, { color: colors.textPrimary, fontFamily: fonts.display }]}>
+              {profile.data.name}
+            </Text>
+            <Text style={[styles.joinDate, { color: colors.textSecondary, fontFamily: fonts.mono }]}>
+              Entrou em {formatJoinDate(profile.data.createdAt)}
+            </Text>
+            <Pressable
+              onPress={() => void shareLink(`${profile.data!.name} no Sunsetsss`, siteLinks.profile(userId))}
+              style={styles.shareRow}
+              hitSlop={8}
+            >
+              <Ionicons name="share-outline" size={15} color={colors.accent} />
+              <Text style={[styles.shareLabel, { color: colors.accent, fontFamily: fonts.bodyMedium }]}>Compartilhar perfil</Text>
+            </Pressable>
+            {profile.data.bio ? (
+              <Text style={[styles.bio, { color: colors.textPrimary, fontFamily: fonts.body }]}>{profile.data.bio}</Text>
+            ) : null}
 
-          <View style={styles.countsRow}>
-            <Pressable onPress={() => router.push(`/profile/${userId}/followers`)} style={styles.countItem}>
-              <Text style={[styles.countValue, { color: colors.textPrimary, fontFamily: fonts.bodyBold }]}>
-                {profile.data.followersCount}
-              </Text>
-              <Text style={[styles.countLabel, { color: colors.textSecondary, fontFamily: fonts.body }]}>
-                seguidores
-              </Text>
-            </Pressable>
-            <Pressable onPress={() => router.push(`/profile/${userId}/following`)} style={styles.countItem}>
-              <Text style={[styles.countValue, { color: colors.textPrimary, fontFamily: fonts.bodyBold }]}>
-                {profile.data.followingCount}
-              </Text>
-              <Text style={[styles.countLabel, { color: colors.textSecondary, fontFamily: fonts.body }]}>
-                seguindo
-              </Text>
-            </Pressable>
+            <View style={styles.countsRow}>
+              <Pressable onPress={() => router.push(`/profile/${userId}/followers`)} style={styles.countItem}>
+                <Text style={[styles.countValue, { color: colors.textPrimary, fontFamily: fonts.bodyBold }]}>
+                  {profile.data.followersCount}
+                </Text>
+                <Text style={[styles.countLabel, { color: colors.textSecondary, fontFamily: fonts.body }]}>
+                  seguidores
+                </Text>
+              </Pressable>
+              <Pressable onPress={() => router.push(`/profile/${userId}/following`)} style={styles.countItem}>
+                <Text style={[styles.countValue, { color: colors.textPrimary, fontFamily: fonts.bodyBold }]}>
+                  {profile.data.followingCount}
+                </Text>
+                <Text style={[styles.countLabel, { color: colors.textSecondary, fontFamily: fonts.body }]}>
+                  seguindo
+                </Text>
+              </Pressable>
+            </View>
+
+            {isOwnProfile ? (
+              <View style={styles.ownActions}>
+                <View style={styles.ownActionItem}>
+                  <Button label="Postar foto" onPress={() => router.push("/photos/new")} />
+                </View>
+                <View style={styles.ownActionItem}>
+                  <Button label="Editar perfil" variant="secondary" onPress={() => router.push("/profile/edit")} />
+                </View>
+              </View>
+            ) : isSignedIn ? (
+              <Button
+                label={profile.data.isFollowedByCurrentUser ? "Seguindo" : "Seguir"}
+                variant={profile.data.isFollowedByCurrentUser ? "secondary" : "primary"}
+                onPress={() => toggleFollow.mutate(!profile.data!.isFollowedByCurrentUser)}
+              />
+            ) : null}
+
+            {!isOwnProfile ? (
+              <Pressable style={styles.reportRow} onPress={handleReportUser} hitSlop={8}>
+                <Ionicons name="flag-outline" size={14} color={colors.textSecondary} />
+                <Text style={[styles.reportLabel, { color: colors.textSecondary, fontFamily: fonts.body }]}>Denunciar usuário</Text>
+              </Pressable>
+            ) : null}
+
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary, fontFamily: fonts.display }]}>Fotos</Text>
           </View>
-
-          {isOwnProfile ? (
-            <View style={styles.ownActions}>
-              <View style={styles.ownActionItem}>
-                <Button label="Postar foto" onPress={() => router.push("/photos/new")} />
-              </View>
-              <View style={styles.ownActionItem}>
-                <Button label="Editar perfil" variant="secondary" onPress={() => router.push("/profile/edit")} />
-              </View>
-            </View>
-          ) : isSignedIn ? (
-            <Button
-              label={profile.data.isFollowedByCurrentUser ? "Seguindo" : "Seguir"}
-              variant={profile.data.isFollowedByCurrentUser ? "secondary" : "primary"}
-              onPress={() => toggleFollow.mutate(!profile.data!.isFollowedByCurrentUser)}
-            />
-          ) : null}
-
-          <Text style={[styles.sectionTitle, { color: colors.textPrimary, fontFamily: fonts.display }]}>Fotos</Text>
-        </View>
-      }
-      ListEmptyComponent={
-        !photos.isLoading ? (
-          <Text style={[styles.emptyText, { color: colors.textSecondary, fontFamily: fonts.body }]}>
-            Nenhuma foto publicada ainda.
-          </Text>
-        ) : null
-      }
-      ListFooterComponent={
-        photos.isLoading || photos.isFetchingNextPage ? (
-          <ActivityIndicator style={styles.footerLoading} color={colors.textPrimary} />
-        ) : null
-      }
-    />
+        }
+        ListEmptyComponent={
+          !photos.isLoading ? (
+            <Text style={[styles.emptyText, { color: colors.textSecondary, fontFamily: fonts.body }]}>
+              Nenhuma foto publicada ainda.
+            </Text>
+          ) : null
+        }
+        ListFooterComponent={
+          photos.isLoading || photos.isFetchingNextPage ? (
+            <ActivityIndicator style={styles.footerLoading} color={colors.textPrimary} />
+          ) : null
+        }
+      />
+      <ReportModal
+        visible={reportOpen}
+        onClose={() => setReportOpen(false)}
+        onSubmit={(payload) => reportUser.mutate(payload)}
+        loading={reportUser.isPending}
+        title="Denunciar usuário"
+      />
+    </>
   );
 }
 
@@ -183,6 +232,8 @@ const styles = StyleSheet.create({
   joinDate: { fontSize: 12 },
   shareRow: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 4 },
   shareLabel: { fontSize: 12 },
+  reportRow: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 8 },
+  reportLabel: { fontSize: 12 },
   bio: { fontSize: 14, textAlign: "center", marginTop: 4 },
   countsRow: { flexDirection: "row", gap: 28, marginTop: 14, marginBottom: 16 },
   countItem: { alignItems: "center" },
