@@ -5,6 +5,8 @@ import { useLocalSearchParams } from "expo-router";
 
 import { Screen } from "@/src/components/ui/Screen";
 import { LocationCard } from "@/src/components/LocationCard";
+import { CitiesExplorer } from "@/src/components/CitiesExplorer";
+import { ExploreModeSwitch, type ExploreMode } from "@/src/components/ExploreModeSwitch";
 import { useTheme } from "@/src/theme/useTheme";
 import { useDebouncedValue } from "@/src/hooks/useDebouncedValue";
 import { useLocationsSearch } from "@/src/hooks/useLocationsSearch";
@@ -16,6 +18,7 @@ import type { Location } from "@/src/types/entities";
 export default function ExploreScreen() {
   const { colors, fonts } = useTheme();
   const params = useLocalSearchParams<{ q?: string; ts?: string }>();
+  const [mode, setMode] = useState<ExploreMode>("locations");
   const [search, setSearch] = useState(params.q ?? "");
   const debouncedSearch = useDebouncedValue(search.trim(), 400);
 
@@ -23,7 +26,10 @@ export default function ExploreScreen() {
   // criação: uma busca vinda da Home (campo ou "Ver todos os resultados") com a Explorar já
   // aberta chega só como param novo. `ts` muda a cada envio, inclusive pra repetir o mesmo texto.
   useEffect(() => {
-    if (params.q !== undefined || params.ts !== undefined) setSearch(params.q ?? "");
+    if (params.q !== undefined || params.ts !== undefined) {
+      setSearch(params.q ?? "");
+      setMode("locations"); // a busca da Home é de locais
+    }
   }, [params.q, params.ts]);
 
   // "Perto de mim" só liga ao toque no chip (pede permissão nesse momento, não na abertura).
@@ -38,6 +44,9 @@ export default function ExploreScreen() {
   const isOffline = query.fetchStatus === "paused";
 
   const locations = useMemo<Location[]>(() => data?.pages.flatMap((page) => page.items) ?? [], [data]);
+
+  // "Cidades": índice próprio (as buscas e filtros abaixo são de locais).
+  if (mode === "cities") return <CitiesExplorer onModeChange={setMode} />;
 
   return (
     <Screen edges={["top"]}>
@@ -59,6 +68,7 @@ export default function ExploreScreen() {
             <Text style={[styles.title, { color: colors.textPrimary, fontFamily: fonts.display }]}>
               Explorar locais
             </Text>
+            <ExploreModeSwitch mode="locations" onChange={setMode} />
             <View style={[styles.searchRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Ionicons name="search" size={18} color={colors.textSecondary} />
               <TextInput

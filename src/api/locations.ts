@@ -19,9 +19,12 @@ export const locationsApi = {
   },
 
   // Não paginado — array plano, capado por `limit` (default 20, clamp 1–50 no servidor).
-  ranking: (period: LocationRankingPeriod, limit?: number) => {
+  // `state` (UF, ex.: "SC") e `citySlug` (município ou localidade) filtram o ranking (docs/API.md).
+  ranking: (period: LocationRankingPeriod, limit?: number, filters?: { state?: string; citySlug?: string }) => {
     const qs = new URLSearchParams({ period });
     if (limit !== undefined) qs.set("limit", String(limit));
+    if (filters?.state) qs.set("state", filters.state);
+    if (filters?.citySlug) qs.set("citySlug", filters.citySlug);
     return apiFetch<Location[]>(`/locations/ranking?${qs.toString()}`, { auth: false });
   },
 

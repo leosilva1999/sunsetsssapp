@@ -238,3 +238,17 @@ export interface NearestCitiesResponse {
   /** Só vem quando se envia `cityId`: `farAway` = pino a mais de 150 km do centro (aviso, nunca bloqueio). */
   chosenCity?: { id: string; name: string; state: string; distanceKm: number; farAway: boolean } | null;
 }
+
+// `GET /cities/{slug}`: página completa da cidade (ou localidade) numa chamada só.
+export interface CityDetail extends City {
+  topLocation: { id: string; name: string; avgRating: number } | null;
+  /** Localidades do município que têm locais (até 10, mais locais primeiro). Vazio numa localidade. */
+  localities: { name: string; slug: string; locationsCount: number }[];
+}
+
+// `GET /cities/ranking`: `city` traz os números de sempre; o que ranqueia é a média do período.
+export interface CityRankingItem {
+  city: City;
+  periodAvgRating: number;
+  periodRatingsCount: number;
+}

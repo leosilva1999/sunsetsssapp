@@ -20,6 +20,8 @@ import { TextField } from "@/src/components/ui/TextField";
 import { RatingStars } from "@/src/components/RatingStars";
 import { LocationMap } from "@/src/components/LocationMap";
 import { ReportModal } from "@/src/components/ReportModal";
+import { ShareButton } from "@/src/components/ShareButton";
+import { siteLinks } from "@/src/lib/shareLinks";
 import { moderationApi } from "@/src/api/moderation";
 import { ApiError } from "@/src/api/client";
 import { REPORT_REASONS_FOR_LOCATION } from "@/src/lib/reportReasons";
@@ -130,7 +132,21 @@ export default function LocationDetailScreen() {
 
   return (
     <Screen edges={["top"]}>
-      <Stack.Screen options={{ headerShown: true, title: location.data?.name ?? "Local", ...headerOptions }} />
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: location.data?.name ?? "Local",
+          headerRight: location.data
+            ? () => (
+                <ShareButton
+                  message={`${location.data!.name}, ${location.data!.city} — no Sunsetsss`}
+                  url={siteLinks.location(location.data!.slug ?? id)}
+                />
+              )
+            : undefined,
+          ...headerOptions,
+        }}
+      />
 
       {location.isLoading ? (
         <View style={styles.centerFill}>

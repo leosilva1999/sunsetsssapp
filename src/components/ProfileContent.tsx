@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { Button } from "./ui/Button";
 import { PhotoCard } from "./PhotoCard";
 import { AvatarMenu } from "./AvatarMenu";
+import { shareLink, siteLinks } from "../lib/shareLinks";
 import { useTheme } from "../theme/useTheme";
 import { useAuthStore } from "../stores/authStore";
 import { useChangeAvatar } from "../hooks/useChangeAvatar";
@@ -105,6 +106,14 @@ export function ProfileContent({ userId }: ProfileContentProps) {
           <Text style={[styles.joinDate, { color: colors.textSecondary, fontFamily: fonts.mono }]}>
             Entrou em {formatJoinDate(profile.data.createdAt)}
           </Text>
+          <Pressable
+            onPress={() => void shareLink(`${profile.data!.name} no Sunsetsss`, siteLinks.profile(userId))}
+            style={styles.shareRow}
+            hitSlop={8}
+          >
+            <Ionicons name="share-outline" size={15} color={colors.accent} />
+            <Text style={[styles.shareLabel, { color: colors.accent, fontFamily: fonts.bodyMedium }]}>Compartilhar perfil</Text>
+          </Pressable>
           {profile.data.bio ? (
             <Text style={[styles.bio, { color: colors.textPrimary, fontFamily: fonts.body }]}>{profile.data.bio}</Text>
           ) : null}
@@ -172,6 +181,8 @@ const styles = StyleSheet.create({
   avatarFallback: { width: 88, height: 88, borderRadius: 44, alignItems: "center", justifyContent: "center" },
   name: { fontSize: 22, marginTop: 8 },
   joinDate: { fontSize: 12 },
+  shareRow: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 4 },
+  shareLabel: { fontSize: 12 },
   bio: { fontSize: 14, textAlign: "center", marginTop: 4 },
   countsRow: { flexDirection: "row", gap: 28, marginTop: 14, marginBottom: 16 },
   countItem: { alignItems: "center" },

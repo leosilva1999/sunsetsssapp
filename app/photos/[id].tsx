@@ -16,6 +16,8 @@ import { Stack, router, useLocalSearchParams } from "expo-router";
 import { Screen } from "@/src/components/ui/Screen";
 import { Button } from "@/src/components/ui/Button";
 import { ReportModal } from "@/src/components/ReportModal";
+import { ShareButton } from "@/src/components/ShareButton";
+import { siteLinks } from "@/src/lib/shareLinks";
 import { CommentItem } from "@/src/components/CommentThread";
 import { useTheme } from "@/src/theme/useTheme";
 import { useAuthStore } from "@/src/stores/authStore";
@@ -115,7 +117,16 @@ export default function PhotoDetailScreen() {
 
   return (
     <Screen edges={["top"]}>
-      <Stack.Screen options={{ headerShown: true, title: "Foto", ...headerOptions }} />
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: "Foto",
+          headerRight: () => (
+            <ShareButton message={`Pôr do sol em ${data.locationName}, no Sunsetsss`} url={siteLinks.photo(id)} />
+          ),
+          ...headerOptions,
+        }}
+      />
       <ScrollView contentContainerStyle={styles.content}>
         <Image source={{ uri: data.imageUrl }} style={styles.image} />
 
