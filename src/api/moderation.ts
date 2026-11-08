@@ -19,6 +19,13 @@ export const moderationApi = {
   reportComment: (commentId: string, payload: { reason: ReportReason; details?: string }) =>
     apiFetch<Report>(`/comments/${commentId}/reports`, { method: "POST", body: payload }),
 
+  // Mesmo corpo, limite e regra de "uma denúncia por alvo" (409 se repetir). `IncorrectInfo` é
+  // pra locais; denunciar a si mesmo é 409.
+  reportLocation: (locationId: string, payload: { reason: ReportReason; details?: string }) =>
+    apiFetch<Report>(`/locations/${locationId}/reports`, { method: "POST", body: payload }),
+  reportUser: (userId: string, payload: { reason: ReportReason; details?: string }) =>
+    apiFetch<Report>(`/users/${userId}/reports`, { method: "POST", body: payload }),
+
   // 🛡️ Moderator ou Admin. `status` default `Pending` no servidor se omitido.
   getReports: (status: ReportStatus, cursor?: string | null) => {
     const qs = new URLSearchParams({ status });

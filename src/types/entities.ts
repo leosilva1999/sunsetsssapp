@@ -102,11 +102,12 @@ export interface Rating {
   createdAt: string;
 }
 
-export type ReportTargetType = "Photo" | "Comment";
+export type ReportTargetType = "Photo" | "Comment" | "Location" | "User";
 export type ReportStatus = "Pending" | "Resolved" | "Dismissed";
 // Valores literais exigidos pela API (docs/API.md) — a UI mapeia pra rótulo em pt-BR na hora de
 // exibir, não manda o rótulo traduzido pro backend.
-export type ReportReason = "Spam" | "Inappropriate" | "Harassment" | "Other";
+// `IncorrectInfo` é pra locais ("o pino/nome/cidade está errado"); os demais valem pra tudo.
+export type ReportReason = "Spam" | "Inappropriate" | "Harassment" | "Other" | "IncorrectInfo";
 
 export interface Report {
   id: string;

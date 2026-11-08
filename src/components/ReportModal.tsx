@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../theme/useTheme";
 import { Button } from "./ui/Button";
 import { TextField } from "./ui/TextField";
-import { REPORT_REASONS } from "../lib/reportReasons";
+import { REPORT_REASONS_FOR_CONTENT } from "../lib/reportReasons";
 import type { ReportReason } from "../types/entities";
 
 interface ReportModalProps {
@@ -13,10 +13,13 @@ interface ReportModalProps {
   onClose: () => void;
   onSubmit: (payload: { reason: ReportReason; details?: string }) => void;
   loading?: boolean;
+  /** Motivos oferecidos; padrão = os de conteúdo (foto/comentário/usuário). */
+  reasons?: { value: ReportReason; label: string }[];
+  title?: string;
 }
 
-// Denúncia de foto/comentário (seção 5.7) — mesmo fluxo pros dois alvos.
-export function ReportModal({ visible, onClose, onSubmit, loading }: ReportModalProps) {
+// Denúncia (seção 5.7) — mesmo fluxo pra foto, comentário, local e usuário.
+export function ReportModal({ visible, onClose, onSubmit, loading, reasons = REPORT_REASONS_FOR_CONTENT, title = "Denunciar" }: ReportModalProps) {
   const { colors, fonts, sunIconColor } = useTheme();
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [details, setDetails] = useState("");
@@ -37,7 +40,7 @@ export function ReportModal({ visible, onClose, onSubmit, loading }: ReportModal
       <View style={styles.backdrop}>
         <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
           <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.textPrimary, fontFamily: fonts.display }]}>Denunciar</Text>
+            <Text style={[styles.title, { color: colors.textPrimary, fontFamily: fonts.display }]}>{title}</Text>
             <Pressable onPress={handleClose} hitSlop={8}>
               <Ionicons name="close" size={22} color={colors.textSecondary} />
             </Pressable>
@@ -45,7 +48,7 @@ export function ReportModal({ visible, onClose, onSubmit, loading }: ReportModal
 
           <Text style={[styles.label, { color: colors.textSecondary, fontFamily: fonts.bodyMedium }]}>Motivo</Text>
           <View style={styles.reasons}>
-            {REPORT_REASONS.map((option) => {
+            {reasons.map((option) => {
               const selected = reason === option.value;
               return (
                 <Pressable

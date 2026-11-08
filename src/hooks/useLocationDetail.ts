@@ -17,6 +17,16 @@ export function useLocationSunset(id: string) {
   });
 }
 
+// "Locais por perto". Falha ou lista vazia só omite o bloco — nunca quebra a tela.
+export function useNearbyLocations(id: string) {
+  return useQuery({
+    queryKey: ["locations", id, "nearby"],
+    queryFn: () => locationsApi.nearby(id, { limit: 10 }),
+    enabled: !!id,
+    retry: false,
+  });
+}
+
 export function useLocationPhotos(id: string) {
   return useQuery({ queryKey: ["locations", id, "photos"], queryFn: () => locationsApi.getPhotos(id) });
 }

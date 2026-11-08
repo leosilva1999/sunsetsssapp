@@ -18,6 +18,13 @@ const STATUS_TABS: { value: ReportStatus; label: string }[] = [
   { value: "Dismissed", label: "Descartadas" },
 ];
 
+const TARGET_LABELS: Record<Report["targetType"], string> = {
+  Photo: "Foto",
+  Comment: "Comentário",
+  Location: "Local",
+  User: "Usuário",
+};
+
 function reasonLabel(reason: Report["reason"]) {
   return REPORT_REASONS.find((r) => r.value === reason)?.label ?? reason;
 }
@@ -43,6 +50,14 @@ function ReportsQueue() {
   const handleViewTarget = async (report: Report) => {
     if (report.targetType === "Photo") {
       router.push(`/photos/${report.targetId}`);
+      return;
+    }
+    if (report.targetType === "Location") {
+      router.push(`/locations/${report.targetId}`);
+      return;
+    }
+    if (report.targetType === "User") {
+      router.push(`/profile/${report.targetId}`);
       return;
     }
     try {
@@ -90,7 +105,7 @@ function ReportsQueue() {
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Pressable onPress={() => handleViewTarget(item)}>
               <Text style={[styles.targetLine, { color: colors.textPrimary, fontFamily: fonts.bodyBold }]}>
-                {item.targetType === "Photo" ? "Foto" : "Comentário"} denunciado
+                {TARGET_LABELS[item.targetType]} denunciado
               </Text>
             </Pressable>
             <Text style={[styles.meta, { color: colors.textSecondary, fontFamily: fonts.body }]}>

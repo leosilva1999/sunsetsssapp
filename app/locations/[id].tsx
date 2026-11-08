@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useMutation } from "@tanstack/react-query";
 import { Link, Stack, router, useLocalSearchParams } from "expo-router";
 
 import { Screen } from "@/src/components/ui/Screen";
@@ -18,6 +19,13 @@ import { Button } from "@/src/components/ui/Button";
 import { TextField } from "@/src/components/ui/TextField";
 import { RatingStars } from "@/src/components/RatingStars";
 import { LocationMap } from "@/src/components/LocationMap";
+import { ReportModal } from "@/src/components/ReportModal";
+import { moderationApi } from "@/src/api/moderation";
+import { ApiError } from "@/src/api/client";
+import { REPORT_REASONS_FOR_LOCATION } from "@/src/lib/reportReasons";
+import { LOCATION_CATEGORY_LABELS } from "@/src/lib/locationCategory";
+import { formatDistance } from "@/src/lib/formatDistance";
+import type { ReportReason } from "@/src/types/entities";
 import { useTheme } from "@/src/theme/useTheme";
 import { useAuthStore } from "@/src/stores/authStore";
 import { getErrorMessage } from "@/src/lib/errorMessage";
@@ -28,6 +36,7 @@ import {
   useLocationRatings,
   useLocationSunset,
   useMyRating,
+  useNearbyLocations,
   useUpsertRating,
 } from "@/src/hooks/useLocationDetail";
 
@@ -51,9 +60,36 @@ export default function LocationDetailScreen() {
   const sunset = useLocationSunset(id);
   const photos = useLocationPhotos(id);
   const ratings = useLocationRatings(id);
+  const nearby = useNearbyLocations(id);
   const myRating = useMyRating(id);
   const upsertRating = useUpsertRating(id);
   const deleteRating = useDeleteRating(id);
+
+  const [reportOpen, setReportOpen] = useState(false);
+  const reportLocation = useMutation({
+    mutationFn: (payload: { reason: ReportReason; details?: string }) => moderationApi.reportLocation(id, payload),
+    onSuccess: () => {
+      setReportOpen(false);
+      Alert.alert("Obrigado!", "Recebemos o aviso e nossa equipe vai revisar este local.");
+    },
+    onError: (error) => {
+      // 409 = esta pessoa já denunciou este local (uma denúncia por alvo).
+      const already = error instanceof ApiError && error.status === 409;
+      setReportOpen(false);
+      Alert.alert(
+        already ? "Você já avisou sobre este local" : "Não foi possível enviar",
+        already ? "Nossa equipe já vai analisar." : getErrorMessage(error, "Tente de novo.")
+      );
+    },
+  });
+
+  const handleReport = () => {
+    if (!isSignedIn) {
+      router.push("/(auth)/login");
+      return;
+    }
+    setReportOpen(true);
+  };
 
   const [formOpen, setFormOpen] = useState(false);
   const [draftScore, setDraftScore] = useState(0);
@@ -113,6 +149,7 @@ export default function LocationDetailScreen() {
               {location.data.name}
             </Text>
             <Text style={[styles.city, { color: colors.textSecondary, fontFamily: fonts.body }]}>
+              {location.data.localityName ? `${location.data.localityName}, ` : ""}
               {location.data.city}
             </Text>
             <View style={styles.ratingRow}>
@@ -120,7 +157,27 @@ export default function LocationDetailScreen() {
               <Text style={[styles.ratingValue, { color: colors.textPrimary, fontFamily: fonts.mono }]}>
                 {location.data.avgRating.toFixed(1)}
               </Text>
+              {location.data.ratingsCount !== undefined ? (
+                <Text style={[styles.counts, { color: colors.textSecondary, fontFamily: fonts.body }]}>
+                  · {location.data.ratingsCount} {location.data.ratingsCount === 1 ? "avaliação" : "avaliações"}
+                  {location.data.photosCount !== undefined
+                    ? ` · ${location.data.photosCount} ${location.data.photosCount === 1 ? "foto" : "fotos"}`
+                    : ""}
+                </Text>
+              ) : null}
             </View>
+            {location.data.category ? (
+              <View style={[styles.categoryChip, { backgroundColor: colors.surfaceAlt }]}>
+                <Text style={[styles.categoryText, { color: colors.textPrimary, fontFamily: fonts.bodyMedium }]}>
+                  {LOCATION_CATEGORY_LABELS[location.data.category] ?? location.data.category}
+                </Text>
+              </View>
+            ) : null}
+            {location.data.description ? (
+              <Text style={[styles.description, { color: colors.textPrimary, fontFamily: fonts.body }]}>
+                {location.data.description}
+              </Text>
+            ) : null}
           </View>
 
           {sunset.data && !sunset.isError ? (
@@ -169,6 +226,41 @@ export default function LocationDetailScreen() {
               </Text>
             )}
           </View>
+
+          {nearby.data && nearby.data.length > 0 ? (
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary, fontFamily: fonts.display }]}>
+                Locais por perto
+              </Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoRow}>
+                {nearby.data.map((place) => (
+                  <Pressable
+                    key={place.id}
+                    style={[styles.nearbyCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                    onPress={() => router.push(`/locations/${place.id}`)}
+                  >
+                    <Text style={[styles.nearbyName, { color: colors.textPrimary, fontFamily: fonts.display }]} numberOfLines={1}>
+                      {place.name}
+                    </Text>
+                    <Text style={[styles.nearbyCity, { color: colors.textSecondary, fontFamily: fonts.body }]} numberOfLines={1}>
+                      {place.city}
+                    </Text>
+                    <View style={styles.nearbyMeta}>
+                      <Ionicons name="location-outline" size={13} color={colors.textSecondary} />
+                      <Text style={[styles.nearbyDistance, { color: colors.textSecondary, fontFamily: fonts.mono }]}>
+                        {place.distanceKm != null ? formatDistance(place.distanceKm) : ""}
+                      </Text>
+                      <Text style={[styles.nearbyDistance, { color: colors.textPrimary, fontFamily: fonts.mono }]}>
+                        {"  "}
+                        {place.avgRating.toFixed(1)}
+                      </Text>
+                      <Ionicons name="star" size={11} color={sunIconColor} />
+                    </View>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          ) : null}
 
           {isSignedIn && (
             <View style={styles.section}>
@@ -251,8 +343,24 @@ export default function LocationDetailScreen() {
               </Text>
             )}
           </View>
+
+          <Pressable style={styles.reportRow} onPress={handleReport} hitSlop={8}>
+            <Ionicons name="flag-outline" size={15} color={colors.textSecondary} />
+            <Text style={[styles.reportLabel, { color: colors.textSecondary, fontFamily: fonts.body }]}>
+              Algo errado neste local? Avisar a equipe
+            </Text>
+          </Pressable>
         </ScrollView>
       )}
+
+      <ReportModal
+        visible={reportOpen}
+        onClose={() => setReportOpen(false)}
+        onSubmit={(payload) => reportLocation.mutate(payload)}
+        loading={reportLocation.isPending}
+        reasons={REPORT_REASONS_FOR_LOCATION}
+        title="Avisar sobre este local"
+      />
     </Screen>
   );
 }
@@ -265,6 +373,17 @@ const styles = StyleSheet.create({
   city: { fontSize: 15 },
   ratingRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
   ratingValue: { fontSize: 15 },
+  counts: { fontSize: 13 },
+  categoryChip: { alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5, marginTop: 4 },
+  categoryText: { fontSize: 12 },
+  description: { fontSize: 14, lineHeight: 21, marginTop: 8 },
+  nearbyCard: { width: 170, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, padding: 12, gap: 3 },
+  nearbyName: { fontSize: 15 },
+  nearbyCity: { fontSize: 12 },
+  nearbyMeta: { flexDirection: "row", alignItems: "center", gap: 3, marginTop: 4 },
+  nearbyDistance: { fontSize: 12 },
+  reportRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 4 },
+  reportLabel: { fontSize: 12 },
   card: { borderRadius: 16, padding: 16, gap: 8 },
   sunsetRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   sunsetTime: { fontSize: 15 },

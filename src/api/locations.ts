@@ -27,6 +27,16 @@ export const locationsApi = {
 
   get: (id: string) => apiFetch<Location>(`/locations/${id}`, { auth: false }),
 
+  // Outros locais perto deste, mais perto primeiro, cada um com `distanceKm` (docs/API.md,
+  // "GET /locations/{idOrSlug}/nearby"). Não paginado; `limit` 1–12, `radiusKm` (0, 200].
+  nearby: (idOrSlug: string, params?: { radiusKm?: number; limit?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.radiusKm !== undefined) qs.set("radiusKm", String(params.radiusKm));
+    if (params?.limit !== undefined) qs.set("limit", String(params.limit));
+    const query = qs.toString();
+    return apiFetch<Location[]>(`/locations/${idOrSlug}/nearby${query ? `?${query}` : ""}`, { auth: false });
+  },
+
   // Seção 5.8 — cadastrar local novo direto do fluxo de postar foto, quando a busca não acha.
   create: (payload: {
     name: string;

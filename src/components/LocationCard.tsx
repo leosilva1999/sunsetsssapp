@@ -3,14 +3,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
 import { useTheme } from "../theme/useTheme";
+import { formatDistance } from "../lib/formatDistance";
 import type { Location } from "../types/entities";
 
 interface LocationCardProps {
   location: Location;
-}
-
-function formatDistance(km: number) {
-  return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1).replace(".", ",")} km`;
 }
 
 // Card da seção 5.3 (Explorar) — nome, cidade, nota média (e distância no "perto de mim"). Sem thumbnail (diferente do card de
