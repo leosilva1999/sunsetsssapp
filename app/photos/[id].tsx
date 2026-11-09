@@ -18,6 +18,7 @@ import { Button } from "@/src/components/ui/Button";
 import { ReportModal } from "@/src/components/ReportModal";
 import { ShareButton } from "@/src/components/ShareButton";
 import { siteLinks } from "@/src/lib/shareLinks";
+import { photoAspectRatio } from "@/src/lib/photoAspect";
 import { CommentItem } from "@/src/components/CommentThread";
 import { useTheme } from "@/src/theme/useTheme";
 import { useAuthStore } from "@/src/stores/authStore";
@@ -128,7 +129,11 @@ export default function PhotoDetailScreen() {
         }}
       />
       <ScrollView contentContainerStyle={styles.content}>
-        <Image source={{ uri: data.imageUrl }} style={styles.image} />
+        <Image
+          source={{ uri: data.imageUrl }}
+          style={[styles.image, { aspectRatio: photoAspectRatio(data) }]}
+          resizeMode="cover"
+        />
 
         <View style={styles.row}>
           <Pressable style={styles.authorRow} onPress={() => router.push(`/profile/${data.userId}`)}>

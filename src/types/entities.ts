@@ -78,6 +78,9 @@ export interface Photo {
   likedByCurrentUser: boolean;
   commentsCount: number;
   createdAt: string;
+  /** Tamanho da imagem como exibida, em px; null/ausente em fotos antigas (docs/API.md). */
+  width?: number | null;
+  height?: number | null;
 }
 
 export interface Comment {

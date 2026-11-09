@@ -8,6 +8,7 @@ import { photosApi } from "../api/photos";
 import { useAuthStore } from "../stores/authStore";
 import { togglePhotoLikeInCache } from "../lib/photoLikeCache";
 import type { Photo } from "../types/entities";
+import { photoAspectRatio } from "../lib/photoAspect";
 
 interface PhotoFeedCardProps {
   photo: Photo;
@@ -57,7 +58,11 @@ export function PhotoFeedCard({ photo, queryKey }: PhotoFeedCardProps) {
         </View>
       </Pressable>
 
-      <Image source={{ uri: photo.imageUrl }} style={styles.image} />
+      <Image
+        source={{ uri: photo.imageUrl }}
+        style={[styles.image, { aspectRatio: photoAspectRatio(photo) }]}
+        resizeMode="cover"
+      />
 
       <View style={styles.footer}>
         <View style={styles.counts}>
