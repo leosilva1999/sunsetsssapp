@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "./ui/Screen";
 import { CityCard } from "./CityCard";
 import { ExploreModeSwitch, type ExploreMode } from "./ExploreModeSwitch";
+import { AdBanner } from "../ads/AdBanner";
 import { useTheme } from "../theme/useTheme";
 import { useCitiesList } from "../hooks/useCitiesBrowse";
 import type { City } from "../types/entities";
@@ -58,6 +59,7 @@ export function CitiesExplorer({ onModeChange }: CitiesExplorerProps) {
                 </Pressable>
               )}
             </View>
+            <AdBanner />
           </View>
         }
         ListEmptyComponent={

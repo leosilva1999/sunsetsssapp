@@ -3,10 +3,15 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "
 
 import { Screen } from "@/src/components/ui/Screen";
 import { PhotoFeedCard } from "@/src/components/PhotoFeedCard";
+import { FeedNativeAd } from "@/src/ads/FeedNativeAd";
+import { FEED_AD_INTERVAL } from "@/src/ads/config";
+import { useAdSlot } from "@/src/ads/useAdSlot";
 import { useTheme } from "@/src/theme/useTheme";
 import { usePhotosFeed } from "@/src/hooks/usePhotosFeed";
 import type { PhotoSort } from "@/src/types/api";
 import type { Photo } from "@/src/types/entities";
+
+type FeedItem = Photo | { kind: "ad"; id: string };
 
 // Seção 5.6: abas Recentes/Mais curtidas, feed paginado por cursor.
 export default function PhotosFeedScreen() {
@@ -20,13 +25,26 @@ export default function PhotosFeedScreen() {
 
   const photos = useMemo<Photo[]>(() => data?.pages.flatMap((page) => page.items) ?? [], [data]);
 
+  // Anúncio nativo a cada FEED_AD_INTERVAL fotos — só quando há anúncio (ou prévia); sem anúncio, a
+  // lista é exatamente a de fotos.
+  const adSlot = useAdSlot();
+  const feedItems = useMemo<FeedItem[]>(() => {
+    if (adSlot === "off") return photos;
+    const items: FeedItem[] = [];
+    photos.forEach((photo, index) => {
+      items.push(photo);
+      if ((index + 1) % FEED_AD_INTERVAL === 0) items.push({ kind: "ad", id: `ad-${index}` });
+    });
+    return items;
+  }, [photos, adSlot]);
+
   return (
     <Screen edges={["top"]}>
       <FlatList
-        data={photos}
+        data={feedItems}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
-        renderItem={({ item }) => <PhotoFeedCard photo={item} queryKey={queryKey} />}
+        renderItem={({ item }) => ("kind" in item ? <FeedNativeAd /> : <PhotoFeedCard photo={item} queryKey={queryKey} />)}
         onEndReachedThreshold={0.4}
         onEndReached={() => {
           if (hasNextPage && !isFetchingNextPage) fetchNextPage();

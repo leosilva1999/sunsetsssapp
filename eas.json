@@ -11,7 +11,11 @@
     },
     "preview": {
       "distribution": "internal",
-      "android": { "buildType": "apk" }
+      "android": { "buildType": "apk" },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://sunsetapi.onrender.com",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "727359060476-qbetjbu2nf22p582dlr3mpi7kspkmvcg.apps.googleusercontent.com"
+      }
     },
     "production": {
       "autoIncrement": true

@@ -10,6 +10,7 @@ import { Button } from "@/src/components/ui/Button";
 import { LocationRankCard } from "@/src/components/LocationRankCard";
 import { PhotoCard } from "@/src/components/PhotoCard";
 import { LocationSuggestions } from "@/src/components/LocationSuggestions";
+import { AdBanner } from "@/src/ads/AdBanner";
 import { AccountMenu } from "@/src/components/AccountMenu";
 import { useTheme } from "@/src/theme/useTheme";
 import { useThemeStore } from "@/src/theme/themeStore";
@@ -177,6 +178,8 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        <AdBanner />
+
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textPrimary, fontFamily: fonts.display }]}>
             Fotos recentes
@@ -196,6 +199,8 @@ export default function HomeScreen() {
             ))}
           </View>
         </View>
+
+        <AdBanner />
 
         <View style={[styles.cta, { backgroundColor: colors.surfaceAlt }]}>
           <Ionicons name="camera-outline" size={28} color={sunIconColor} />

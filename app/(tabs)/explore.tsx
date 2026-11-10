@@ -6,6 +6,7 @@ import { useLocalSearchParams } from "expo-router";
 import { Screen } from "@/src/components/ui/Screen";
 import { LocationCard } from "@/src/components/LocationCard";
 import { CitiesExplorer } from "@/src/components/CitiesExplorer";
+import { AdBanner } from "@/src/ads/AdBanner";
 import { ExploreModeSwitch, type ExploreMode } from "@/src/components/ExploreModeSwitch";
 import { useTheme } from "@/src/theme/useTheme";
 import { useDebouncedValue } from "@/src/hooks/useDebouncedValue";
@@ -141,6 +142,7 @@ export default function ExploreScreen() {
                 Não foi possível obter sua localização agora. Tente novamente.
               </Text>
             )}
+            <AdBanner />
           </View>
         }
         ListEmptyComponent={

@@ -4,6 +4,7 @@ import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, V
 import { Screen } from "@/src/components/ui/Screen";
 import { LocationRankCard } from "@/src/components/LocationRankCard";
 import { CityRankCard } from "@/src/components/CityRankCard";
+import { AdBanner } from "@/src/ads/AdBanner";
 import { useTheme } from "@/src/theme/useTheme";
 import { useLocationsRanking } from "@/src/hooks/useLocationsRanking";
 import { useCitiesRanking } from "@/src/hooks/useCitiesBrowse";
@@ -64,6 +65,7 @@ export default function RankingScreen() {
           {STATES.map((uf) => pill(uf, uf, state === uf, () => setState(state === uf ? null : uf)))}
         </ScrollView>
       ) : null}
+      <AdBanner />
     </View>
   );
 
