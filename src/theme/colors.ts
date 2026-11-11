@@ -32,6 +32,9 @@ export interface ThemeColors {
   brandTitle: string;
   /** subtítulo sobre o gradiente das telas de auth — mesma família, mais escuro (legibilidade). */
   brandSubtitle: string;
+  /** título e subtítulo do cabeçalho da Home (sobre o gradiente laranja): azul-marinho no claro
+   *  (~6:1 de contraste nas posições do texto), creme no escuro. */
+  heroHeading: string;
   accent: string; // rosa de entardecer — CTAs secundários, badges
   danger: string;
   success: string;
@@ -48,6 +51,7 @@ export const darkColors: ThemeColors = {
   textOnGradient: "#fdf6ec",
   brandTitle: "#ffffff",
   brandSubtitle: "#fdf6ec",
+  heroHeading: "#fdf6ec",
   accent: gradient.eveningPink,
   danger: "#ff6b6b",
   success: "#5fd6a4",
@@ -64,6 +68,7 @@ export const lightColors: ThemeColors = {
   textOnGradient: "#1e1038",
   brandTitle: brandOrange,
   brandSubtitle: brandOrangeDeep,
+  heroHeading: "#0b1f4d",
   accent: gradient.eveningPink,
   danger: "#d64545",
   success: "#2f9e6e",
