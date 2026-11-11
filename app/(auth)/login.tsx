@@ -50,10 +50,10 @@ export default function LoginScreen() {
             <View style={styles.logo}>
               <BrandLogo variant="vertical" height={144} />
             </View>
-            <Text style={[styles.title, { color: colors.brandTitle, fontFamily: fonts.display }]}>
+            <Text style={[styles.title, { color: colors.heroHeading, fontFamily: fonts.display }]}>
               Bem-vindo de volta
             </Text>
-            <Text style={[styles.subtitle, { color: colors.brandSubtitle, fontFamily: fonts.body }]}>
+            <Text style={[styles.subtitle, { color: colors.heroHeading, fontFamily: fonts.body }]}>
               Encontre um pôr do sol de tirar o fôlego
             </Text>
           </View>

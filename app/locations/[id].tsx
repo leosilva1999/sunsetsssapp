@@ -20,7 +20,7 @@ import { TextField } from "@/src/components/ui/TextField";
 import { RatingStars } from "@/src/components/RatingStars";
 import { LocationMap } from "@/src/components/LocationMap";
 import { ReportModal } from "@/src/components/ReportModal";
-import { ShareButton } from "@/src/components/ShareButton";
+import { ShareLinkButton } from "@/src/components/ShareLinkButton";
 import { siteLinks } from "@/src/lib/shareLinks";
 import { moderationApi } from "@/src/api/moderation";
 import { ApiError } from "@/src/api/client";
@@ -132,21 +132,7 @@ export default function LocationDetailScreen() {
 
   return (
     <Screen edges={["top"]}>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: location.data?.name ?? "Local",
-          headerRight: location.data
-            ? () => (
-                <ShareButton
-                  message={`${location.data!.name}, ${location.data!.city} — no Sunsetsss`}
-                  url={siteLinks.location(location.data!.slug ?? id)}
-                />
-              )
-            : undefined,
-          ...headerOptions,
-        }}
-      />
+      <Stack.Screen options={{ headerShown: true, title: location.data?.name ?? "Local", ...headerOptions }} />
 
       {location.isLoading ? (
         <View style={styles.centerFill}>
@@ -194,6 +180,12 @@ export default function LocationDetailScreen() {
                 {location.data.description}
               </Text>
             ) : null}
+            <View style={styles.shareRow}>
+              <ShareLinkButton
+                message={`${location.data.name}, ${location.data.city} — no Sunsetsss`}
+                url={siteLinks.location(location.data.slug ?? id)}
+              />
+            </View>
           </View>
 
           {sunset.data && !sunset.isError ? (
@@ -390,6 +382,7 @@ const styles = StyleSheet.create({
   ratingRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
   ratingValue: { fontSize: 15 },
   counts: { fontSize: 13 },
+  shareRow: { marginTop: 8 },
   categoryChip: { alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5, marginTop: 4 },
   categoryText: { fontSize: 12 },
   description: { fontSize: 14, lineHeight: 21, marginTop: 8 },

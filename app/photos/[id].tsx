@@ -16,7 +16,7 @@ import { Stack, router, useLocalSearchParams } from "expo-router";
 import { Screen } from "@/src/components/ui/Screen";
 import { Button } from "@/src/components/ui/Button";
 import { ReportModal } from "@/src/components/ReportModal";
-import { ShareButton } from "@/src/components/ShareButton";
+import { ShareLinkButton } from "@/src/components/ShareLinkButton";
 import { siteLinks } from "@/src/lib/shareLinks";
 import { photoAspectRatio } from "@/src/lib/photoAspect";
 import { CommentItem } from "@/src/components/CommentThread";
@@ -118,16 +118,7 @@ export default function PhotoDetailScreen() {
 
   return (
     <Screen edges={["top"]}>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: "Foto",
-          headerRight: () => (
-            <ShareButton message={`Pôr do sol em ${data.locationName}, no Sunsetsss`} url={siteLinks.photo(id)} />
-          ),
-          ...headerOptions,
-        }}
-      />
+      <Stack.Screen options={{ headerShown: true, title: "Foto", ...headerOptions }} />
       <ScrollView contentContainerStyle={styles.content}>
         <Image
           source={{ uri: data.imageUrl }}
@@ -178,6 +169,7 @@ export default function PhotoDetailScreen() {
               </Text>
             </View>
           )}
+          <ShareLinkButton message={`Pôr do sol em ${data.locationName}, no Sunsetsss`} url={siteLinks.photo(id)} />
         </View>
 
         <Pressable onPress={() => router.push(`/locations/${data.locationId}`)}>
@@ -268,7 +260,7 @@ const styles = StyleSheet.create({
   avatar: { width: 36, height: 36, borderRadius: 18 },
   avatarFallback: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   authorName: { fontSize: 15 },
-  likeRow: { flexDirection: "row" },
+  likeRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   likeButton: { flexDirection: "row", alignItems: "center", gap: 6 },
   likeCount: { fontSize: 14 },
   location: { fontSize: 14 },

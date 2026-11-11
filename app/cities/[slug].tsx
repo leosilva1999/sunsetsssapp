@@ -6,7 +6,7 @@ import { Link, Stack, router, useLocalSearchParams } from "expo-router";
 import { Screen } from "@/src/components/ui/Screen";
 import { LocationCard } from "@/src/components/LocationCard";
 import { PhotoCard } from "@/src/components/PhotoCard";
-import { ShareButton } from "@/src/components/ShareButton";
+import { ShareLinkButton } from "@/src/components/ShareLinkButton";
 import { RatingStars } from "@/src/components/RatingStars";
 import { cityTitle } from "@/src/components/CityCard";
 import { useTheme } from "@/src/theme/useTheme";
@@ -40,9 +40,6 @@ export default function CityScreen() {
   const active = tab === "locations" ? locations : photos;
 
   const title = city.data ? cityTitle(city.data) : "Cidade";
-  const headerRight = city.data
-    ? () => <ShareButton message={`${cityTitle(city.data!)} no Sunsetsss`} url={siteLinks.city(slug)} />
-    : undefined;
 
   if (city.isLoading) {
     return (
@@ -95,6 +92,8 @@ export default function CityScreen() {
           {data.ratingsCount === 1 ? "avaliação" : "avaliações"}
         </Text>
       </View>
+
+      <ShareLinkButton message={`${cityTitle(data)} no Sunsetsss`} url={siteLinks.city(slug)} />
 
       {sunset.data && !sunset.isError ? (
         <View style={[styles.card, { backgroundColor: colors.surfaceAlt }]}>
@@ -183,7 +182,7 @@ export default function CityScreen() {
 
   return (
     <Screen edges={["top"]}>
-      <Stack.Screen options={{ headerShown: true, title, headerRight, ...headerOptions }} />
+      <Stack.Screen options={{ headerShown: true, title, ...headerOptions }} />
       {tab === "locations" ? (
         <FlatList
           key="locations"
