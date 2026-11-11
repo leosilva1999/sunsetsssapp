@@ -90,23 +90,11 @@ papéis de usuário, Admin-only onde a spec pede).
 - **"Baixar meus dados" e "Excluir minha conta"** (LGPD, seção 5.9) — ações de conta sensíveis/
   irreversíveis, melhor numa entrega própria dedicada a elas.
 - **Login com Google** — ver pendência abaixo (já investigado a fundo, não é só "faltou tempo").
-- ~~Mapa embutido~~ feito — `src/components/LocationMap.tsx` (WebView + Google Maps Embed API,
-  adaptando `proposal-location-map-embed.md` do web pra mobile). Reaproveita a key do `sunsetweb`
-  (`EXPO_PUBLIC_GOOGLE_MAPS_EMBED_KEY` no `.env`) — se ela estiver restrita por HTTP referrer pro
-  domínio web, o mapa pode não carregar na WebView; nesse caso crie uma key própria pro mobile
-  (restrição por app Android/iOS, não por referrer) no Google Cloud Console. Sem a env var
-  configurada, o componente simplesmente não renderiza nada, não quebra a tela — e o botão
-  "Abrir no app de Mapas" continua ali como alternativa sempre disponível.
-
-Tipos (`src/types/`) e módulos de API (`src/api/`) foram conferidos contra
-`docs/API.md` do repositório `sunsetapi` (não só o resumo em `web_app_docs/mobile-app-spec.md`)
-— payloads, nomes de campo e regras de validação (ex.: senha ≥8 caracteres, `sort=recent|top`,
-`PublicUserResponse` sem `followersCount` no objeto de sessão) batem com o que a API realmente
-devolve.
-
-**Pendências que dependem de decisão/infra fora deste repo** (não são bugs — ver comentários no
-código):
-
+- ~~Mapa embutido~~ feito — `src/components/LocationMap.tsx`: mapa **nativo** (react-native-maps, `liteMode`
+  no Android, só leitura, com um pino), com a mesma chave do Maps SDK for Android do seletor de local
+  (`GOOGLE_MAPS_ANDROID_API_KEY`, ver `app.config.js`). A versão antiga (WebView + Maps Embed API) foi
+  trocada porque uma chave restrita a "Apps Android" não vale numa WebView ("empty referer"). No Expo Go
+  o mapa do Android fica cinza (sem a nossa chave) — só aparece em build nativo.
 - **Login com Google**: já existe um projeto Google Cloud funcionando (`GoogleAuth:ClientId` no
   `appsettings.Development.json` do `sunsetapi`, mesmo Client ID em `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
   do `sunsetweb`) — não precisa criar nada do zero, só adicionar credenciais mobile a ele. O
