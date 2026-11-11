@@ -35,6 +35,9 @@ export interface ThemeColors {
   /** título e subtítulo do cabeçalho da Home (sobre o gradiente laranja): azul-marinho no claro
    *  (~6:1 de contraste nas posições do texto), creme no escuro. */
   heroHeading: string;
+  /** botão principal das telas sobre o gradiente (ex.: "Entrar"): fundo e cor do texto. */
+  heroButton: string;
+  heroButtonText: string;
   accent: string; // rosa de entardecer — CTAs secundários, badges
   danger: string;
   success: string;
@@ -52,6 +55,8 @@ export const darkColors: ThemeColors = {
   brandTitle: "#ffffff",
   brandSubtitle: "#fdf6ec",
   heroHeading: "#fdf6ec",
+  heroButton: "#fdf6ec",
+  heroButtonText: "#17102a",
   accent: gradient.eveningPink,
   danger: "#ff6b6b",
   success: "#5fd6a4",
@@ -69,6 +74,8 @@ export const lightColors: ThemeColors = {
   brandTitle: brandOrange,
   brandSubtitle: brandOrangeDeep,
   heroHeading: "#0b1f4d",
+  heroButton: "#0b1f4d",
+  heroButtonText: "#ffffff",
   accent: gradient.eveningPink,
   danger: "#d64545",
   success: "#2f9e6e",

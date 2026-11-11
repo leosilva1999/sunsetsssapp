@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type PressableProps } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { useTheme } from "../../theme/useTheme";
 
 type Variant = "primary" | "secondary" | "ghost";
@@ -11,16 +11,33 @@ interface ButtonProps extends Omit<PressableProps, "style"> {
   loading?: boolean;
   /** Ícone opcional à esquerda do texto (ex.: "logo-google" no botão de login social). */
   icon?: ComponentProps<typeof Ionicons>["name"];
+  /** Ícone colorido próprio (ex.: o "G" do Google) no lugar de `icon`, que é de uma cor só. */
+  iconElement?: ReactNode;
+  /** Sobrescreve a cor de fundo e a do texto da variante (ex.: o botão "Entrar" azul do login). */
+  backgroundColor?: string;
+  labelColor?: string;
 }
 
-export function Button({ label, variant = "primary", loading, disabled, icon, ...rest }: ButtonProps) {
+export function Button({
+  label,
+  variant = "primary",
+  loading,
+  disabled,
+  icon,
+  iconElement,
+  backgroundColor: backgroundOverride,
+  labelColor,
+  ...rest
+}: ButtonProps) {
   const { colors, fonts } = useTheme();
   const isDisabled = disabled || loading;
 
   const backgroundColor =
-    variant === "primary" ? colors.textPrimary : variant === "secondary" ? colors.surfaceAlt : "transparent";
+    backgroundOverride ??
+    (variant === "primary" ? colors.textPrimary : variant === "secondary" ? colors.surfaceAlt : "transparent");
   const textColor =
-    variant === "primary" ? colors.background : variant === "secondary" ? colors.textPrimary : colors.textPrimary;
+    labelColor ??
+    (variant === "primary" ? colors.background : variant === "secondary" ? colors.textPrimary : colors.textPrimary);
   const borderColor = variant === "ghost" ? colors.border : "transparent";
 
   return (
@@ -41,7 +58,8 @@ export function Button({ label, variant = "primary", loading, disabled, icon, ..
         <ActivityIndicator color={textColor} />
       ) : (
         <View style={styles.content}>
-          {icon ? <Ionicons name={icon} size={18} color={textColor} style={styles.icon} /> : null}
+          {iconElement ? <View style={styles.icon}>{iconElement}</View> : null}
+          {!iconElement && icon ? <Ionicons name={icon} size={18} color={textColor} style={styles.icon} /> : null}
           <Text style={[styles.label, { color: textColor, fontFamily: fonts.bodyBold }]}>{label}</Text>
         </View>
       )}

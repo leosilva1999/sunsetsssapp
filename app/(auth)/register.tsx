@@ -8,6 +8,7 @@ import { GradientBackground } from "@/src/components/ui/GradientBackground";
 import { BrandLogo } from "@/src/components/ui/BrandLogo";
 import { TextField } from "@/src/components/ui/TextField";
 import { Button } from "@/src/components/ui/Button";
+import { GoogleLogo } from "@/src/components/ui/GoogleLogo";
 import { useTheme } from "@/src/theme/useTheme";
 import { useGoogleLogin, useRegister } from "@/src/hooks/useAuthMutations";
 import { getErrorMessage } from "@/src/lib/errorMessage";
@@ -73,7 +74,7 @@ export default function RegisterScreen() {
             <View style={styles.logo}>
               <BrandLogo variant="vertical" height={144} />
             </View>
-            <Text style={[styles.title, { color: colors.brandTitle, fontFamily: fonts.display }]}>
+            <Text style={[styles.title, { color: colors.heroHeading, fontFamily: fonts.display }]}>
               Crie sua conta
             </Text>
           </View>
@@ -117,7 +118,14 @@ export default function RegisterScreen() {
               </Text>
             </Pressable>
 
-            <Button label="Criar conta" onPress={handleSubmit} loading={register.isPending} disabled={!canSubmit} />
+            <Button
+              label="Criar conta"
+              backgroundColor={colors.heroButton}
+              labelColor={colors.heroButtonText}
+              onPress={handleSubmit}
+              loading={register.isPending}
+              disabled={!canSubmit}
+            />
 
             <View style={styles.divider}>
               <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
@@ -125,7 +133,7 @@ export default function RegisterScreen() {
               <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
             </View>
 
-            <Button label="Continuar com Google" variant="secondary" icon="logo-google" onPress={handleGoogle} loading={googleLogin.isPending} />
+            <Button label="Continuar com Google" variant="secondary" iconElement={<GoogleLogo />} onPress={handleGoogle} loading={googleLogin.isPending} />
           </View>
 
           <Link

@@ -6,6 +6,7 @@ import { GradientBackground } from "@/src/components/ui/GradientBackground";
 import { BrandLogo } from "@/src/components/ui/BrandLogo";
 import { TextField } from "@/src/components/ui/TextField";
 import { Button } from "@/src/components/ui/Button";
+import { GoogleLogo } from "@/src/components/ui/GoogleLogo";
 import { useTheme } from "@/src/theme/useTheme";
 import { useGoogleLogin, useLogin } from "@/src/hooks/useAuthMutations";
 import { getErrorMessage } from "@/src/lib/errorMessage";
@@ -87,6 +88,8 @@ export default function LoginScreen() {
 
             <Button
               label="Entrar"
+              backgroundColor={colors.heroButton}
+              labelColor={colors.heroButtonText}
               onPress={handleSubmit}
               loading={login.isPending}
               disabled={!email.trim() || !password}
@@ -98,7 +101,7 @@ export default function LoginScreen() {
               <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
             </View>
 
-            <Button label="Continuar com Google" variant="secondary" icon="logo-google" onPress={handleGoogle} loading={googleLogin.isPending} />
+            <Button label="Continuar com Google" variant="secondary" iconElement={<GoogleLogo />} onPress={handleGoogle} loading={googleLogin.isPending} />
 
             <Pressable onPress={() => router.replace("/(tabs)")} hitSlop={8}>
               <Text style={[styles.guestLink, { color: colors.textOnGradient, fontFamily: fonts.bodyMedium }]}>
