@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
 import { useTheme } from "../theme/useTheme";
+import { BrandLogo } from "./ui/BrandLogo";
 import { useMarkNotificationRead } from "../hooks/useNotifications";
 import { getNotificationMessageSuffix, resolveNotificationRoute } from "../lib/notificationTarget";
 import type { AppNotification, NotificationType } from "../types/entities";
@@ -13,7 +14,10 @@ const ICONS: Record<NotificationType, ComponentProps<typeof Ionicons>["name"]> =
   PhotoLiked: "heart",
   PhotoCommented: "chatbubble",
   CommentReplied: "arrow-undo",
+  Announcement: "megaphone",
 };
+
+const CATEGORY_LABELS = { Service: "Aviso", Promotional: "Novidade" } as const;
 
 function formatRelative(iso: string) {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -35,6 +39,8 @@ export function NotificationRow({ notification }: NotificationRowProps) {
   const markRead = useMarkNotificationRead();
   const [navigating, setNavigating] = useState(false);
   const isUnread = !notification.readAt;
+  // Aviso da equipe: conteúdo próprio, sem autor real (nunca linkar pra perfil).
+  const isAnnouncement = notification.type === "Announcement";
 
   const handlePress = async () => {
     if (isUnread) markRead.mutate(notification.id);
@@ -50,6 +56,7 @@ export function NotificationRow({ notification }: NotificationRowProps) {
   // Nome e avatar de quem gerou a notificação levam ao perfil dele, qualquer que seja o tipo;
   // o resto da linha segue levando ao alvo (foto, comentário, perfil do seguidor).
   const openActorProfile = () => {
+    if (isAnnouncement) return handlePress();
     if (isUnread) markRead.mutate(notification.id);
     router.push(`/profile/${notification.actorUserId}`);
   };
@@ -61,7 +68,11 @@ export function NotificationRow({ notification }: NotificationRowProps) {
       disabled={navigating}
     >
       <Pressable onPress={openActorProfile} hitSlop={4}>
-        {notification.actorAvatarUrl ? (
+        {isAnnouncement ? (
+          <View style={[styles.avatarFallback, { backgroundColor: colors.surface }]}>
+            <BrandLogo variant="icon" height={22} />
+          </View>
+        ) : notification.actorAvatarUrl ? (
           <Image source={{ uri: notification.actorAvatarUrl }} style={styles.avatar} />
         ) : (
           <View style={[styles.avatarFallback, { backgroundColor: colors.surface }]}>
@@ -73,12 +84,27 @@ export function NotificationRow({ notification }: NotificationRowProps) {
         <Ionicons name={ICONS[notification.type]} size={11} color={sunIconColor} />
       </View>
       <View style={styles.body}>
-        <Text style={[styles.message, { color: colors.textPrimary, fontFamily: fonts.body }]}>
-          <Text style={{ fontFamily: fonts.bodyBold }} onPress={openActorProfile}>
-            {notification.actorName}
-          </Text>{" "}
-          {getNotificationMessageSuffix(notification.type)}
-        </Text>
+        {isAnnouncement ? (
+          <>
+            <Text style={[styles.message, { color: colors.textPrimary, fontFamily: fonts.bodyBold }]}>
+              {notification.title}
+            </Text>
+            {notification.body ? (
+              <Text style={[styles.message, { color: colors.textPrimary, fontFamily: fonts.body }]}>{notification.body}</Text>
+            ) : null}
+            <Text style={[styles.date, { color: colors.accent, fontFamily: fonts.mono }]}>
+              {notification.actorName}
+              {notification.category ? ` · ${CATEGORY_LABELS[notification.category]}` : ""}
+            </Text>
+          </>
+        ) : (
+          <Text style={[styles.message, { color: colors.textPrimary, fontFamily: fonts.body }]}>
+            <Text style={{ fontFamily: fonts.bodyBold }} onPress={openActorProfile}>
+              {notification.actorName}
+            </Text>{" "}
+            {getNotificationMessageSuffix(notification.type)}
+          </Text>
+        )}
         <Text style={[styles.date, { color: colors.textSecondary, fontFamily: fonts.mono }]}>
           {formatRelative(notification.createdAt)}
         </Text>

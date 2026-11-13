@@ -37,3 +37,7 @@ yarn-error.*
 
 # env
 .env
+
+# Firebase (push no Android) — vem do EAS como variável de arquivo (GOOGLE_SERVICES_JSON)
+google-services.json
+GoogleService-Info.plist

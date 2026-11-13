@@ -149,7 +149,9 @@ export type NotificationType =
   | "NewFollower"
   | "PhotoLiked"
   | "PhotoCommented"
-  | "CommentReplied";
+  | "CommentReplied"
+  // Aviso da equipe (serviço ou promoção) — sem autor real (docs/API.md, "Announcements").
+  | "Announcement";
 
 export interface AppNotification {
   id: string;
@@ -160,6 +162,14 @@ export interface AppNotification {
   targetDescription: string;
   readAt: string | null;
   createdAt: string;
+  // Só preenchidos em `type: "Announcement"` (null nos outros). `actorName` é sempre "Equipe Sunset",
+  // `actorAvatarUrl` null e `actorUserId` o GUID zerado — nunca linkar pra perfil.
+  title?: string | null;
+  body?: string | null;
+  category?: "Service" | "Promotional" | null;
+  /** Destino no app: `Location:{id}`, `City:{slug}`, `Photo:{id}` ou `User:{id}` (null = só a lista). */
+  link?: string | null;
+  announcementId?: string | null;
 }
 
 export type LegalDocumentType = "TermsOfService" | "PrivacyPolicy";

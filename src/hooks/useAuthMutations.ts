@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { authApi } from "../api/auth";
 import { useAuthStore } from "../stores/authStore";
 import { getGoogleIdToken } from "../lib/googleSignIn";
+import { unregisterDevice } from "../push/registerDevice";
 import type { AuthResponse, LegalVersions, LoginPayload, RegisterPayload } from "../types/api";
 
 // Login, cadastro e Google devolvem a sessão + `legalAcceptance`: guardamos os dois (o segundo
@@ -58,6 +59,9 @@ export function useLogout() {
   const signOut = useAuthStore((s) => s.signOut);
   return useMutation({
     mutationFn: async () => {
+      // Tira o aparelho da conta ANTES do logout (precisa do Bearer): senão ele seguiria recebendo os
+      // pushes desta conta. Best-effort — falhar (sem rede) não impede de sair.
+      await unregisterDevice();
       const refreshToken = useAuthStore.getState().refreshToken;
       if (refreshToken) await authApi.logout(refreshToken);
     },

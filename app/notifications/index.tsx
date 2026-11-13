@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 
 import { Screen } from "@/src/components/ui/Screen";
 import { NotificationRow } from "@/src/components/NotificationRow";
+import { PushPermissionCard } from "@/src/push/PushPermissionCard";
 import { useTheme } from "@/src/theme/useTheme";
 import { useAuthStore } from "@/src/stores/authStore";
 import { useMarkAllNotificationsRead, useNotificationsList, useUnreadCount } from "@/src/hooks/useNotifications";
@@ -47,13 +48,16 @@ export default function NotificationsScreen() {
         onRefresh={refetch}
         refreshing={isRefetching}
         ListHeaderComponent={
-          unreadCount.data && unreadCount.data.count > 0 ? (
-            <Pressable onPress={() => markAllRead.mutate()} hitSlop={6} style={styles.markAllRow}>
-              <Text style={[styles.markAllLabel, { color: colors.accent, fontFamily: fonts.bodyMedium }]}>
-                {markAllRead.isPending ? "Marcando..." : "Marcar todas como lidas"}
-              </Text>
-            </Pressable>
-          ) : null
+          <>
+            <PushPermissionCard />
+            {unreadCount.data && unreadCount.data.count > 0 ? (
+              <Pressable onPress={() => markAllRead.mutate()} hitSlop={6} style={styles.markAllRow}>
+                <Text style={[styles.markAllLabel, { color: colors.accent, fontFamily: fonts.bodyMedium }]}>
+                  {markAllRead.isPending ? "Marcando..." : "Marcar todas como lidas"}
+                </Text>
+              </Pressable>
+            ) : null}
+          </>
         }
         ListEmptyComponent={
           !isLoading ? (

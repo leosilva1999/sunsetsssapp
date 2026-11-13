@@ -14,6 +14,7 @@ import { useAuthStore } from "@/src/stores/authStore";
 import { getStoredSession } from "@/src/lib/secureStorage";
 import { LegalAcceptanceGate } from "@/src/components/LegalAcceptanceGate";
 import { AdsBootstrap } from "@/src/ads/AdsBootstrap";
+import { PushBootstrap } from "@/src/push/PushBootstrap";
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -50,6 +51,7 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }} />
           <LegalAcceptanceGate />
           <AdsBootstrap />
+          <PushBootstrap />
 
         </View>
       </QueryClientProvider>
