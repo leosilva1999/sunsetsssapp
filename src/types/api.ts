@@ -30,6 +30,8 @@ export interface LoginPayload {
 export type LocationRankingPeriod = "week" | "month" | "all";
 // `sort=recent|top` na API (não "mostLiked") — ver docs/API.md, seção Photos.
 export type PhotoSort = "recent" | "top";
+// Abas do feed da aba Fotos: as duas ordenações públicas + "Seguindo" (só pra logados).
+export type PhotosFeedTab = PhotoSort | "following";
 
 // `POST /photos/upload-url` — padrão de upload em 2 passos (seção 5.8): pede a URL pré-assinada
 // aqui, PUT os bytes direto nela, só então manda o `imageUrl` resultante pra `POST /photos`.

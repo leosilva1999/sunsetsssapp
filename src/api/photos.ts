@@ -10,6 +10,16 @@ export const photosApi = {
     return apiFetch<CursorPage<Photo>>(`/photos?${qs.toString()}`, { auth: false });
   },
 
+  // 🔒 Feed "Seguindo" (docs/API.md): só as fotos de quem o usuário segue, mais novas primeiro, sem
+  // `sort`. Pessoal (nunca cacheado); `likedByCurrentUser` vem preenchido. Mesmo formato e mesma
+  // paginação por cursor de `GET /photos`. Vazio = não segue ninguém OU ninguém que segue postou.
+  following: (params: { cursor?: string | null }) => {
+    const qs = new URLSearchParams();
+    if (params.cursor) qs.set("cursor", params.cursor);
+    const query = qs.toString();
+    return apiFetch<CursorPage<Photo>>(`/photos/following${query ? `?${query}` : ""}`);
+  },
+
   count: () => apiFetch<{ count: number }>("/photos/count", { auth: false }),
 
   get: (id: string) => apiFetch<Photo>(`/photos/${id}`, { auth: false }),

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Screen } from "@/src/components/ui/Screen";
@@ -8,7 +8,9 @@ import { FEED_AD_INTERVAL } from "@/src/ads/config";
 import { useAdSlot } from "@/src/ads/useAdSlot";
 import { useTheme } from "@/src/theme/useTheme";
 import { usePhotosFeed } from "@/src/hooks/usePhotosFeed";
-import type { PhotoSort } from "@/src/types/api";
+import { useUserProfile } from "@/src/hooks/useUserProfile";
+import { useAuthStore } from "@/src/stores/authStore";
+import type { PhotosFeedTab } from "@/src/types/api";
 import type { Photo } from "@/src/types/entities";
 
 type FeedItem = Photo | { kind: "ad"; id: string };
@@ -16,7 +18,14 @@ type FeedItem = Photo | { kind: "ad"; id: string };
 // Seção 5.6: abas Recentes/Mais curtidas, feed paginado por cursor.
 export default function PhotosFeedScreen() {
   const { colors, fonts } = useTheme();
-  const [sort, setSort] = useState<PhotoSort>("recent");
+  const [sort, setSort] = useState<PhotosFeedTab>("recent");
+  const userId = useAuthStore((s) => s.user?.id);
+  const isSignedIn = useAuthStore((s) => s.status === "signedIn");
+
+  // "Seguindo" só existe pra quem está logado; ao sair da conta volta pra "Recentes".
+  useEffect(() => {
+    if (!isSignedIn && sort === "following") setSort("recent");
+  }, [isSignedIn, sort]);
   const queryKey = ["photos", "feed", sort] as const;
 
   const query = usePhotosFeed(sort);
@@ -24,6 +33,12 @@ export default function PhotosFeedScreen() {
   const isOffline = query.fetchStatus === "paused";
 
   const photos = useMemo<Photo[]>(() => data?.pages.flatMap((page) => page.items) ?? [], [data]);
+
+  // Lista vazia em "Seguindo" tem duas causas (docs/API.md): não segue ninguém, ou quem segue não
+  // postou. `followingCount` do perfil desempata — só buscado quando precisa.
+  const followingEmpty = sort === "following" && !isLoading && !isError && photos.length === 0;
+  const myProfile = useUserProfile(followingEmpty ? userId : undefined);
+  const followsNobody = myProfile.data?.followingCount === 0;
 
   // Anúncio nativo a cada FEED_AD_INTERVAL fotos — só quando há anúncio (ou prévia); sem anúncio, a
   // lista é exatamente a de fotos.
@@ -59,18 +74,32 @@ export default function PhotosFeedScreen() {
             <View style={styles.tabs}>
               <TabButton label="Recentes" active={sort === "recent"} onPress={() => setSort("recent")} />
               <TabButton label="Mais curtidas" active={sort === "top"} onPress={() => setSort("top")} />
+              {isSignedIn && <TabButton label="Seguindo" active={sort === "following"} onPress={() => setSort("following")} />}
             </View>
           </View>
         }
         ListEmptyComponent={
           !isLoading ? (
-            <Text style={[styles.emptyText, { color: colors.textSecondary, fontFamily: fonts.body }]}>
-              {isOffline
-                ? "Sem conexão — verifique sua internet."
-                : isError
-                  ? "Não foi possível carregar as fotos agora."
-                  : "Nenhuma foto publicada ainda."}
-            </Text>
+            <View style={styles.emptyBox}>
+              <Text style={[styles.emptyText, { color: colors.textSecondary, fontFamily: fonts.body }]}>
+                {isOffline
+                  ? "Sem conexão — verifique sua internet."
+                  : isError
+                    ? "Não foi possível carregar as fotos agora."
+                    : sort === "following"
+                      ? followsNobody
+                        ? "Você ainda não segue ninguém. Siga pessoas para ver as fotos delas aqui."
+                        : "As pessoas que você segue ainda não postaram fotos."
+                      : "Nenhuma foto publicada ainda."}
+              </Text>
+              {sort === "following" && !isError && !isOffline ? (
+                <Pressable onPress={() => setSort("recent")} hitSlop={8}>
+                  <Text style={[styles.emptyLink, { color: colors.accent, fontFamily: fonts.bodyMedium }]}>
+                    Ver fotos da comunidade
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
           ) : null
         }
         ListFooterComponent={
@@ -109,6 +138,8 @@ const styles = StyleSheet.create({
   tabs: { flexDirection: "row", gap: 8 },
   tabButton: { borderRadius: 999, paddingHorizontal: 16, paddingVertical: 9 },
   tabButtonLabel: { fontSize: 13 },
-  emptyText: { fontSize: 14, textAlign: "center", marginTop: 32 },
+  emptyBox: { alignItems: "center", gap: 12, marginTop: 32, paddingHorizontal: 12 },
+  emptyText: { fontSize: 14, textAlign: "center" },
+  emptyLink: { fontSize: 14 },
   footerLoading: { marginVertical: 20 },
 });

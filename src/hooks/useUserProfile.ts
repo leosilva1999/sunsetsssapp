@@ -68,5 +68,9 @@ export function useToggleFollow(userId: string) {
     onError: (_err, _vars, context) => {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous);
     },
+    // Seguir / deixar de seguir muda quem aparece no feed "Seguindo" (docs/API.md): refaz na próxima vez.
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ["photos", "feed", "following"] });
+    },
   });
 }
