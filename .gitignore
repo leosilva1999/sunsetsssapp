@@ -41,3 +41,7 @@ yarn-error.*
 # Firebase (push no Android) — vem do EAS como variável de arquivo (GOOGLE_SERVICES_JSON)
 google-services.json
 GoogleService-Info.plist
+
+# Chaves de conta de serviço do Firebase/Google (FCM V1) — SEGREDO: só vão pro EAS, nunca pro git
+*-firebase-adminsdk-*.json
+*service-account*.json
