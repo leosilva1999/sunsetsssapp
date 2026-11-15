@@ -15,6 +15,7 @@ import { getStoredSession } from "@/src/lib/secureStorage";
 import { LegalAcceptanceGate } from "@/src/components/LegalAcceptanceGate";
 import { AdsBootstrap } from "@/src/ads/AdsBootstrap";
 import { PushBootstrap } from "@/src/push/PushBootstrap";
+import { PushPrePrompt } from "@/src/push/PushPrePrompt";
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -52,6 +53,7 @@ export default function RootLayout() {
           <LegalAcceptanceGate />
           <AdsBootstrap />
           <PushBootstrap />
+          <PushPrePrompt />
 
         </View>
       </QueryClientProvider>
